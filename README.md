@@ -1,6 +1,5 @@
 # Toady
-Wickedly extensible multi-channel IRC bot.  Develop and install mods
-without reconnecting, assign commands to IRC permission levels.
+Wickedly extensible IRC bot written in Node.js.  Load and reload mods without reconnecting.
 
 ## Download. Install. Fly.
 If you don't already have Node.js, [get it](http://nodejs.org). It's awesome.
