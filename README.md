@@ -68,11 +68,11 @@ legalese.  It's friendly and open, I promise.
 ## Toady has a purpose in life
 I wrote Toady in 2013 to help manage my dev team's IRC room. There are other
 bots, but this is the magical mix of features that few of the others had:
-	- Written in Javascript, so practically anyone can extend it
-	- Dead-simple command framework, so new commands are no more than a few lines of code away
-	- Can develop on it and test mods without restarting (/msg Toady viewmod modcontrol)
-	- Can restrict its commands by its own global permissions as well as channel and NickServ permissions on the IRC server itself
-	- Since it's Node.js, making mods do crazy stuff like hosting websites to view channel logs right within Toady is as simple as `npm install express`
+- Written in Javascript, so practically anyone can extend it
+- Dead-simple command framework, so new commands are no more than a few lines of code away
+- Can develop on it and test mods without restarting (/msg Toady viewmod modcontrol)
+- Can restrict its commands by its own global permissions as well as channel and NickServ permissions on the IRC server itself
+- Since it's Node.js, making mods do crazy stuff like hosting websites to view channel logs right within Toady is as simple as `npm install express`
 
 ## Obligatory Copyright
-Toady is Copyright ©2013 Tom Frost
+Toady is Copyright ©2013 Tom Frost.
