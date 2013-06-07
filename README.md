@@ -53,9 +53,9 @@ mod can do.  Hint: anything.
 
 For now, just know that all user-written mods should go in the 'mods' folder,
 and they can be in any format that Node.js's require() can handle.  So...
-	- mods/mymod.js
-	- mods/mymod/index.js
-	- mods/mymod/somefolder/somefile.js (if there's a package.json with a 'main' property pointing there)
+- mods/mymod.js
+- mods/mymod/index.js
+- mods/mymod/somefolder/somefile.js (if there's a package.json with a 'main' property pointing there)
 
 So mods can be as simple as one file, or a complex folder structure if it's
 complicated enough to require that sort of thing.  And if so, that's awesome,
