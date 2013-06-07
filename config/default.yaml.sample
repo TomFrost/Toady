@@ -1,0 +1,30 @@
+##
+## Toady Configuration
+## (Indents are two spaces. Tabs break yaml.)
+##
+
+server:
+  host: irc.freenode.net
+  port: 6667
+  channels:
+    - "#toadytest"
+  messageLength: 512
+
+identity:
+  nick: Toady
+  user: toadybot
+  name: Toady IRC Bot
+
+mod_commandrunner:
+  # The fantasyChar is what commands must be preceded with in a chat channel
+  # in order to be recognized as commands.
+  fantasyChar: "!"
+
+## !!IMPORTANT!! ##
+## Currently, the only defaultAuthMethod is 'NickServ', requiring the
+## bot owner to be registered and identified with NickServ in order to be
+## recognized as Owner status.  The 'owner' property must be changed to your
+## NickServ-registered nick in order to access all of Toady's functions!
+mod_users:
+  defaultAuthMethod: NickServ
+  owner: -REPLACE ME-
