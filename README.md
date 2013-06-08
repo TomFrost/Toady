@@ -62,7 +62,7 @@ complicated enough to require that sort of thing.  And if so, that's awesome,
 rock on.
 
 ## Toady has a lawyer
-Toady is distributed under the MIT license.  See the 'LICENSE.txt' file for the
+Toady is distributed under the BSD license.  See the 'LICENSE.txt' file for the
 legalese.  It's friendly and open, I promise.
 
 ## Toady has a purpose in life
