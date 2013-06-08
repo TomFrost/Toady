@@ -24,15 +24,19 @@ marked with
 Because four exclamation points means business, son.
 
 ## You turn Toady on.
-To launch (from the Toady directory):
+To launch (from the Toady directory) on any non-Windows machine, or Cygwin:
 
-    node app/Toady.js
+    ./ribbit start
+
+If you're on Windows, it's:
+
+    ribbit.cmd start
 
 Need to launch it on more than one server? Just copy config/default.yaml to
 config/myotherserver.yaml, edit it for the new server, and launch
 Toady like this:
 
-    NODE_ENV=myotherserver node app/Toady.js
+    ./ribbit start myotherserver
 
 When he's in your channel, do this in IRC for more info:
 
@@ -40,10 +44,30 @@ When he's in your channel, do this in IRC for more info:
 
 ## Teach Toady new tricks.
 Toady can be extended through simple mods, and mods can make Toady do
-practially anything -- from logging channel messages, to opening up an HTTP
-server to control him, to launching nuclear missiles.  But Toady hates that last
-thing, so don't do that.  He'll be pissed.
+practially anything.  Mods can be searched for, installed, and uninstalled
+through ribbit.
 
+**IMPORTANT NOTE: This section shows you how to install third-party mods.
+These are not moderated, maintained, guaranteed, or otherwise vetted by
+Toady's author.  Install at your own risk, as mods are capable of anything!**
+
+List all Toady mods:
+
+    ./ribbit search
+
+List only mods that deal with typos:
+
+    ./ribbit search typo
+
+Install a mod:
+
+    ./ribbit install typofix
+
+Uninstall a mod:
+
+    ./ribbit uninstall typofix
+
+## Write your own mods! (It's easy)
 I'll have docs here on how to write awesome mods soon, but until then, here's
 what's up: almost ALL of Toady's functionality, including setting user
 permissions, making him talk in a channel, and even executing all the commands,
@@ -52,14 +76,28 @@ documentation there is thorough, and provides great examples on what all a
 mod can do.  Hint: anything.
 
 For now, just know that all user-written mods should go in the 'mods' folder,
-and they can be in any format that Node.js's require() can handle.  So...
-- mods/mymod.js
-- mods/mymod/index.js
-- mods/mymod/somefolder/somefile.js (if there's a package.json with a 'main' property pointing there)
+and they can be in any format that Node.js's require() can handle.  However,
+I strongly recommend putting each mod in its own folder, and having the main
+file be named `index.js` or point to the main file in your package.json.
+The reasoning behind this is in the next section!
 
-So mods can be as simple as one file, or a complex folder structure if it's
-complicated enough to require that sort of thing.  And if so, that's awesome,
-rock on.
+## Distribute your mods on ribbit
+To get your mods on ribbit, all you need to do is publish your mod to NPM
+under the following name:
+
+    toady-mod_name_here
+
+So if your mod is named 'typofix', your mod's package.json should contain
+this line:
+
+    "name": "toady-typofix"
+
+Don't have a package.json yet? Just type `npm init` in your mod's directory
+and follow the prompts, giving it the "toady-" prefixed name when it asks.
+
+If you haven't already done it, run `npm adduser` to log in (or make an
+account) on NPM, and then run `npm publish` to give your mod to the world.
+It should show up in ribbit searches within a few minutes.
 
 ## Toady has a lawyer
 Toady is distributed under the BSD license.  See the 'LICENSE.txt' file for the
