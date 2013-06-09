@@ -9,8 +9,6 @@ var fs = require('fs'),
 	objUtil = require('../util/Object'),
 	env = process.env.NODE_ENV || 'default';
 
-console.log('ENVENVENV', process.env.NODE_ENV, env);
-
 const CONFIG_PATH = __dirname + "/../../config/" + env + "-mod_{mod}.json";
 const CONFIG_PREFIX = 'mod_';
 
