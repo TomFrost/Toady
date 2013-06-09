@@ -7,7 +7,7 @@ case `uname` in
 esac
 
 if [ -x "$basedir/node.exe" ]; then
-  "$basedir/node.exe" "$basedir/tools/ribbit.js" "$@"
+  "$basedir/node.exe" "$basedir/tools/ribbit-cli.js" "$@"
 else
-  node "$basedir/tools/ribbit.js" "$@"
+  node "$basedir/tools/ribbit-cli.js" "$@"
 fi

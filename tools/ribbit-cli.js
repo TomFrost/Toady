@@ -8,14 +8,8 @@ process.stderr._write = process.stderr.write;
 process.stderr.write = function() {};
 
 // Dependencies
-var fs = require('fs'),
-	npm = require('npm'),
-	rimraf = require('rimraf'),
-	Seq = require('seq'),
-	path = require('path');
-
-const MOD_DIR = path.normalize(path.join(__dirname, '..', 'mods'));
-const MOD_PREFIX = 'toady-';
+var ribbit = require('../app/ribbit/Ribbit'),
+	Seq = require('seq');
 
 // Parse command and arguments
 var cmd = process.argv[2] ? process.argv[2].toLowerCase() : '',
@@ -28,9 +22,9 @@ switch(cmd) {
 	case 'search':
 		search(args); break;
 	case 'install':
-		installMod(args); break;
+		install(args); break;
 	case 'uninstall':
-		uninstallMod(args); break;
+		uninstall(args); break;
 	default:
 		printUsage();
 		process.exit(1);
@@ -51,41 +45,20 @@ function exitFatal(err, code) {
 }
 
 /**
- * Installs a given Toady mod by having NPM install it into node_modules
- * (complete with the 'toady-' prefix) and symlinking it to the mods folder
- * without the prefix.
+ * Installs a given Toady mod.
  *
  * @param {String} args The name of the mod to be installed, without the
  *      prefix
  */
-function installMod(args) {
-	var modPkg = MOD_PREFIX + args;
-	Seq()
-		.seq(function checkArgs() {
-			if (args.indexOf(' ') != -1)
-				this(new Error('Mod names cannot contain spaces'));
-			else
-				this();
-		})
-		.seq(function getNpm() {
-			npm.load(this);
-		})
-		.seq(function runInstall(npm) {
-			npm.dir = MOD_DIR;
-			npm.root = npm.dir;
-			console.log("Installing " + modPkg + "...");
-			npm.install(modPkg, this);
-		})
-		.seq(function makeSymlink() {
-			fs.symlink(path.join(npm.dir, modPkg), path.join(MOD_DIR, args),
-				'dir', this);
-		})
-		.seq(function complete() {
-			console.log('Installed!');
-		})
-		.catch(function(err) {
+function install(args) {
+	var modPkg = ribbit.MOD_PREFIX + args;
+	console.log("Installing " + modPkg + "...");
+	ribbit.install(args, function(err) {
+		if (err)
 			exitFatal(err);
-		});
+		else
+			console.log('Installed!');
+	});
 }
 
 /**
@@ -125,32 +98,19 @@ function printUsage() {
 }
 
 /**
- * Executes an NPM search for mods matching the toady mod prefix and an
- * optional additional search query.
+ * Lists any Toady mods matching the search query, or all mods if no query
+ * is provided.
  *
  * @param {String} query A search query to limit the results
  */
 function search(query) {
 	Seq()
-		.seq(function getNpm() {
-			npm.load(this);
-		})
-		.seq(function runSearch(npm) {
-			var queryStr = query ? ' [' + query + ']' : '';
-			console.log("Searching for mods" + queryStr + "...");
+		.seq(function getResults() {
 			this.vars.stdOn = stdOff();
-			var args = query.split(' ');
-			args.push(MOD_PREFIX, this);
-			npm.search.apply(npm, args);
+			ribbit.search(query, this);
 		})
-		.seq(function getKeys(res) {
+		.seq(function prepOutput(modIds, res) {
 			this.vars.stdOn();
-			var pregex = new RegExp('^' + MOD_PREFIX);
-			var modIds = Object.keys(res).filter(function(key) {
-				return key.match(pregex);
-			}).map(function(key) {
-				return key.substr(MOD_PREFIX.length);
-			});
 			if (!modIds || !modIds.length)
 				this(new Error("No results for \"" + query + "\"."));
 			else {
@@ -165,7 +125,7 @@ function search(query) {
 		.flatten()
 		.seqEach(function(modId) {
 			console.log(strFit(modId, this.vars.maxId), '  ',
-				strFit(this.vars.results[MOD_PREFIX + modId].description,
+				strFit(this.vars.results[ribbit.MOD_PREFIX + modId].description,
 				this.vars.maxDesc, true));
 			this();
 		})
@@ -227,64 +187,17 @@ function strFit(str, len, truncOnly) {
 }
 
 /**
- * Uninstalls a mod by removing the symlink in the mods folder, as well as
- * deleting the mod from node_modules.  If a mod was not installed through
- * this means, an error will be returned.
+ * Uninstalls a Toady mod.
  *
  * @param {String} args An installed mod ID to be deleted
  */
-function uninstallMod(args) {
-	var modPath = path.join(MOD_DIR, args),
-		nonRibbitErr = new Error("Ribbit will only uninstall mods that it \
-installed.\nYou're safe to delete " + path.join('mods', args) + " yourself, \
-though, if you no longer need it!");
-	Seq()
-		.seq(function sanitize() {
-			if (args.indexOf(' ') != -1 || args.indexOf('/') != -1)
-				this(new Error("The remove command takes a single mod ID."));
-			else
-				this();
-		})
-		.seq(function getStat() {
-			var next = this;
-			fs.lstat(modPath, function(err, stat) {
-				if ((err && err.code == 'ENOENT') || !err)
-					next(null, stat);
-				else
-					next(err);
-			});
-		})
-		.seq(function assertSymLink(stat) {
-			if (!stat)
-				this(new Error("Mod '" + args + "' not found."));
-			else if (!stat.isSymbolicLink())
-				this(nonRibbitErr);
-			else
-				this();
-		})
-		.seq(function getLinkedPath() {
-			fs.readlink(modPath, this);
-		})
-		.seq(function assertNodeModules(linkPath) {
-			var existsRegex = new RegExp(path.join('node_modules',
-				MOD_PREFIX + args) + '$');
-			if (!linkPath.match(existsRegex))
-				this(nonRibbitErr);
-			else {
-				this.vars.linkPath = linkPath;
-				this(null, linkPath);
-			}
-		})
-		.seq(function deleteSymLink() {
-			fs.unlink(modPath, this);
-		})
-		.seq(function deleteLinkPath() {
-			rimraf(this.vars.linkPath, this);
-		})
-		.seq(function success() {
-			console.log("Deleted", args);
-		})
-		.catch(function(err) {
+function uninstall(args) {
+	var modPkg = ribbit.MOD_PREFIX + args;
+	console.log("Uninstalling " + modPkg + "...");
+	ribbit.uninstall(args, function(err) {
+		if (err)
 			exitFatal(err);
-		});
+		else
+			console.log('Uninstalled.');
+	});
 }
