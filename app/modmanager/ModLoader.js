@@ -5,7 +5,9 @@
 
 // Dependencies
 var fs = require('fs'),
-	objUtil = require('../util/Object');
+	path = require('path'),
+	objUtil = require('../util/Object'),
+	Seq = require('seq');
 
 const CORE_MOD_DIR = __dirname + '/../coremods';
 const USER_MOD_DIR = __dirname + '/../../mods';
@@ -131,25 +133,41 @@ function getModIdsInDir(dir, cb) {
  *          - {Error} An error object, if an error occurred
  *          - {*} The result of requiring the mod file.  If the mod is
  *            properly formatted, this should be an executable function.
+ *          - {Object|null} If found, the parsed package.json file associated
+ *            with the mod.
  */
 function loadMod(modId, cb) {
-	getCoreModIdMap(function(err, coreModMap) {
-		if (err)
-			cb(err);
-		else {
-			var dir = coreModMap[modId] ? CORE_MOD_DIR : USER_MOD_DIR,
-				mod,
+	Seq()
+		.seq(function getMap() {
+			getCoreModIdMap(this);
+		})
+		.seq(function getMod(coreModMap) {
+			var mod,
 				loadErr;
+			this.vars.dir = coreModMap[modId] ? CORE_MOD_DIR : USER_MOD_DIR;
 			try {
-				mod = require(dir + '/' + modId);
+				mod = require(path.join(this.vars.dir, modId));
 			}
 			catch (e) {
 				loadErr = new Error("Could not load mod '" + modId +
 					"': Module does not exist");
 			}
-			cb(loadErr, mod);
-		}
-	});
+			this(loadErr, mod);
+		})
+		.seq(function getPackageJson(mod) {
+			var pkgJson = null;
+			try {
+				pkgJson = require(path.join(this.vars.dir, modId,
+					'package.json'));
+			}
+			catch (e) {
+				pkgJson = null;
+			}
+			cb(null, mod, pkgJson);
+		})
+		.catch(function(err) {
+			cb(err);
+		});
 }
 
 /**

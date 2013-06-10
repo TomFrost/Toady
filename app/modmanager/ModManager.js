@@ -12,7 +12,8 @@ var events = require("events"),
 	objUtil = require('../util/Object'),
 	ModConfig = require('./ModConfig'),
 	ModLoader = require('./ModLoader'),
-	client = require('../irc/Client');
+	client = require('../irc/Client'),
+	ribbit = require('../ribbit/Ribbit');
 
 /**
  * A set of defaults to be applied to any loaded mod. Mods should probably
@@ -207,14 +208,33 @@ ModManager.prototype.loadMod = function(modId, cb) {
 		.seq(function getMod() {
 			ModLoader.loadMod(modId, this);
 		})
-		.seq(function getModConfig(modFunc) {
+		.seq(function getModConfig(modFunc, pkgJson) {
 			this.vars.modFunc = modFunc;
+			this.vars.pkgJson = pkgJson;
 			ModConfig.getConfig(modId, modFunc.configDefaults, this);
 		})
 		.seq(function initMod(modConf) {
 			var modFunc = this.vars.modFunc,
 				rawMod = modFunc(modConf, client, self),
-				mod = objUtil.merge(MOD_DEFAULTS, rawMod);
+				pkgJson = this.vars.pkgJson,
+				modPkg = {};
+			console.log(pkgJson);
+			if (pkgJson) {
+				if (pkgJson.name)
+					modPkg.name = pkgJson.name.replace(ribbit.MOD_PREFIX, '');
+				if (pkgJson.version)
+					modPkg.version = pkgJson.version;
+				if (pkgJson.description)
+					modPkg.desc = pkgJson.description;
+				if (pkgJson.author) {
+					var type = typeof pkgJson.author;
+					if (type == 'string')
+						modPkg.author = pkgJson.author;
+					else if (type == 'object' && pkgJson.author.name)
+						modPkg.author = pkgJson.author.name;
+				}
+			}
+			var mod = objUtil.merge(MOD_DEFAULTS, modPkg, rawMod);
 			this.vars.mod = mod;
 			this(null, mod);
 		})
