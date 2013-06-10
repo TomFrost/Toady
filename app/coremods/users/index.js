@@ -46,7 +46,7 @@ const PERMS = {
 	}
 };
 const AUTH_METHODS = [
-	'NickServ',
+	'NickServ'
 ];
 
 /**
@@ -132,6 +132,7 @@ function permEqualOrGreater(checkPerm, againstPerm) {
 module.exports = function(config, client, modMan) {
 
 	// Bootstrap users
+	var userCache = {};
 	if (config.owner && !config.users[config.owner.toLowerCase()])
 		config.users[config.owner.toLowerCase()] = {perm: 'O'};
 
@@ -188,6 +189,21 @@ module.exports = function(config, client, modMan) {
 	}
 
 	/**
+	 * Gets an array of all the channels a nick currently shares with the bot.
+	 *
+	 * @param {String} nick The nick to be searched
+	 * @returns {Array} An array of channel names
+	 */
+	function getNickChannels(nick) {
+		var channels = [];
+		objUtil.forEach(client.chans, function(chan, props) {
+			if (props.users[nick])
+				channels.push(chan);
+		});
+		return channels;
+	}
+
+	/**
 	 * Gets a user's global (non-channel-specific) permission: either O, S, P,
 	 * or null if the user has no global permission.
 	 *
@@ -195,19 +211,24 @@ module.exports = function(config, client, modMan) {
 	 * @param {Function} cb A callback function to be executed on completion.
 	 *      Arguments provided are:
 	 *          - {Error} An error object, if an error occurred
-	 *          - {String|null} Either S, O, P, or null
+	 *          - {String|null} Either O, S, P, or null
 	 */
 	function getGlobalPerm(nick, cb) {
-		var lowNick = nick.toLowerCase();
-		if (config.users[lowNick]) {
-			var userConfig = config.users[lowNick],
-				authMethod = config.defaultAuthMethod || userConfig.authMethod,
+		var lowNick = nick.toLowerCase(),
+			userConfig = config.users[lowNick];
+		if (userConfig && userCache[lowNick])
+			cb(null, userConfig.perm);
+		else if (userConfig) {
+			var authMethod = config.defaultAuthMethod || userConfig.authMethod,
 				authMod = authMods[authMethod];
 			authMod.isAuthorized(nick, userConfig, function(err, authed) {
 				if (err || !authed)
 					cb(err);
-				else
+				else {
+					if (authed)
+						userCache[lowNick] = true;
 					cb(null, userConfig.perm);
+				}
 			});
 		}
 		else
@@ -447,6 +468,53 @@ module.exports = function(config, client, modMan) {
 	}
 
 	/**
+	 * Called whenever a user's nick changes.  This allows the mod to update
+	 * the user's nick in the userCache.
+	 *
+	 * @param {String} oldNick The user's old nick
+	 * @param {String} newNick The user's new nick.
+	 */
+	function nickHandler(oldNick, newNick) {
+		var lowNick = oldNick.toLowerCase();
+		if (userCache[lowNick]) {
+			userCache[newNick.toLowerCase()] = true;
+			delete userCache[lowNick];
+		}
+	}
+	client.on('nick', nickHandler);
+
+	/**
+	 * Called whenever a user leaves a channel.  For cached users, scans to
+	 * see if they're in any other channel the bot is in.  If not, they are
+	 * removed from the userCache since they are no longer being tracked.
+	 *
+	 * @param {String} channel The channel that was parted
+	 * @param {String} nick The user that parted
+	 */
+	function partHandler(channel, nick) {
+		var lowNick = nick.toLowerCase();
+		if (userCache[lowNick]) {
+			var chans = getNickChannels(nick);
+			if (!chans.length)
+				delete userCache[lowNick];
+		}
+	}
+	client.on('part', partHandler);
+
+	/**
+	 * Called whenever a user quits.  If that user was cached, they are
+	 * removed from the userCache.
+	 *
+	 * @param {String} nick The nick that quit
+	 */
+	function quitHandler(nick) {
+		var lowNick = nick.toLowerCase();
+		if (userCache[lowNick])
+			delete userCache[lowNick];
+	}
+	client.on('quit', quitHandler);
+
+	/**
 	 * Creates or updates a user's global account, with a new global permission
 	 * (O, S, or P) and an optional authMethod.  The account creator must have
 	 * the appropriate permissions to create a user at their given permission
@@ -672,6 +740,9 @@ current permission level can be deleted.",
 				if (authMod.unload)
 					authMod.unload();
 			});
+			client.removeListener('nick', nickHandler);
+			client.removeListener('part', partHandler);
+			client.removeListener('quit', quitHandler);
 		}
 	};
 };
