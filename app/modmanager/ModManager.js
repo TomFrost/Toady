@@ -218,7 +218,6 @@ ModManager.prototype.loadMod = function(modId, cb) {
 				rawMod = modFunc(modConf, client, self),
 				pkgJson = this.vars.pkgJson,
 				modPkg = {};
-			console.log(pkgJson);
 			if (pkgJson) {
 				if (pkgJson.name)
 					modPkg.name = pkgJson.name.replace(ribbit.MOD_PREFIX, '');
