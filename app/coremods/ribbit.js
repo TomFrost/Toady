@@ -7,8 +7,26 @@ var ribbit = require('../ribbit/Ribbit'),
 	Seq = require('seq'),
 	strUtil = require('../util/String');
 
+/**
+ * The Ribbit mod is an IRC interface to the core Ribbit library, allowing mods
+ * to be searched, installed, and uninstalled right from IRC.  The advantage
+ * to using IRC rather than the CLI tool is, if a Toady instance is running,
+ * the mod will be automatically loaded.
+ *
+ * @param {Object} config A Toady config object
+ * @param {Object} client An IRC client object
+ * @param {Object} modMan The Toady ModManager object
+ * @returns {Object} A Toady mod
+ */
 module.exports = function(config, client, modMan) {
 
+	/**
+	 * Installs a Toady mod via Ribbit and automatically loads it.
+	 *
+	 * @param {String} replyTo The nickname or channel to which responses
+	 *      should be sent.
+	 * @param {String} modId The ID of the mod to be downloaded and installed.
+	 */
 	function install(replyTo, modId) {
 		client.notice(replyTo, "Installing \"" + modId + "\"...");
 		Seq()
@@ -27,6 +45,13 @@ module.exports = function(config, client, modMan) {
 			});
 	}
 
+	/**
+	 * Searches for Toady mods via Ribbit.
+	 *
+	 * @param {String} replyTo The nickname or channel to which responses
+	 *      should be sent.
+	 * @param {String} [terms] Terms to search for.  Omit to list all mods.
+	 */
 	function search(replyTo, terms) {
 		if (!terms)
 			terms = '';
@@ -46,6 +71,13 @@ module.exports = function(config, client, modMan) {
 		});
 	}
 
+	/**
+	 * Unloads (if necessary) and uninstalls a Toady mod via Ribbit.
+	 *
+	 * @param {String} replyTo The nickname or channel to which responses
+	 *      should be sent.
+	 * @param {String} modId The ID of the mod to be uninstalled.
+	 */
 	function uninstall(replyTo, modId) {
 		Seq()
 			.seq(function unload() {
