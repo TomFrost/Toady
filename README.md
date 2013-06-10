@@ -54,18 +54,25 @@ Toady's author.  Install at your own risk, as mods are capable of anything!**
 List all Toady mods:
 
     ./ribbit search
+    # Or in IRC: /msg Toady ribbit search
 
 List only mods that deal with typos:
 
     ./ribbit search typo
+    # Or in IRC: /msg Toady ribbit search typo
 
 Install a mod:
 
     ./ribbit install typofix
+    # Or in IRC, just say: !ribbit install typofix
 
 Uninstall a mod:
 
     ./ribbit uninstall typofix
+    # Or in IRC, just say: !ribbit uninstall typofix
+
+Did I mention you can search, download, and install mods into a running Toady
+instance directly from IRC?  Yeah.  Toady's like that.
 
 ## Write your own mods! (It's easy)
 I'll have docs here on how to write awesome mods soon, but until then, here's
