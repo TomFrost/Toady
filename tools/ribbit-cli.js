@@ -9,7 +9,8 @@ process.stderr.write = function() {};
 
 // Dependencies
 var ribbit = require('../app/ribbit/Ribbit'),
-	Seq = require('seq');
+	Seq = require('seq'),
+	strUtil = require('../app/util/String');
 
 // Parse command and arguments
 var cmd = process.argv[2] ? process.argv[2].toLowerCase() : '',
@@ -62,21 +63,6 @@ function install(args) {
 }
 
 /**
- * Scans an array of strings for the longest string length it contains.
- *
- * @param {Array} ary An array of strings
- * @returns {Number} The largest string length in the array
- */
-function maxStrLen(ary) {
-	var maxLen = 0;
-	ary.forEach(function(str) {
-		if (str.length > maxLen)
-			maxLen = str.length;
-	});
-	return maxLen;
-}
-
-/**
  * Outputs usage instructions to stdout.
  */
 function printUsage() {
@@ -115,7 +101,7 @@ function search(query) {
 				this(new Error("No results for \"" + query + "\"."));
 			else {
 				this.vars.results = res;
-				this.vars.maxId = maxStrLen(modIds);
+				this.vars.maxId = strUtil.maxLen(modIds);
 				this.vars.maxDesc = process.stdout.columns -
 					this.vars.maxId - 4;
 				console.log('');
@@ -124,9 +110,9 @@ function search(query) {
 		})
 		.flatten()
 		.seqEach(function(modId) {
-			console.log(strFit(modId, this.vars.maxId), '  ',
-				strFit(this.vars.results[ribbit.MOD_PREFIX + modId].description,
-				this.vars.maxDesc, true));
+			console.log(strUtil.fit(modId, this.vars.maxId), '  ',
+				strUtil.fit(this.vars.results[ribbit.MOD_PREFIX + modId]
+				.description, this.vars.maxDesc, true));
 			this();
 		})
 		.catch(function(err) {
@@ -163,27 +149,6 @@ function stdOff() {
 	return function() {
 		process.stdout.write = oldStdout;
 	};
-}
-
-/**
- * Makes a string fit the specified space, either by right-padding it with
- * spaces or by truncating it.
- *
- * @param {String} str The string whose length should be changed
- * @param {Number} len The new length of the string
- * @param {boolean} [truncOnly] true if this function should only truncate
- *      the string, and never pad it; false otherwise.  This is useful
- *      to avoid unnecessary padding on the last string of a line.
- * @returns {String} The string, with a length matching the len argument.
- */
-function strFit(str, len, truncOnly) {
-	if (!truncOnly) {
-		while (str.length < len)
-			str += ' ';
-	}
-	if (str.length > len)
-		str = str.substring(0, len);
-	return str;
 }
 
 /**
