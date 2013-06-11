@@ -51,8 +51,8 @@ module.exports = function(config, client, modMan) {
 		mods.forEach(function(mod) {
 			objUtil.forEach(mod.commands || {}, function(cmdId, cmd) {
 				var hasPerm = cmd.hasOwnProperty('minPermission');
-				if (!hasPerm || (maxPerm !== null && hasPerm &&
-						pMod.permEqualOrGreater(maxPerm, cmd.minPermission))) {
+				if (!cmd.hidden && (!hasPerm || (maxPerm !== null && hasPerm &&
+						pMod.permEqualOrGreater(maxPerm, cmd.minPermission)))) {
 					if (!modCommands[mod.id])
 						modCommands[mod.id] = {};
 					modCommands[mod.id][cmdId] = cmd;
@@ -85,7 +85,8 @@ module.exports = function(config, client, modMan) {
 			objUtil.forEach(mod.commands, function(cmdId, cmd) {
 				var perm = cmd.minPermission == undefined ? '0' :
 						cmd.minPermission;
-				if (perm == '0' || pMod.permEqualOrGreater(maxPerm, perm)) {
+				if (!cmd.hidden && (perm == '0' ||
+						pMod.permEqualOrGreater(maxPerm, perm))) {
 					if (!cmds[perm])
 						cmds[perm] = {};
 					cmds[perm][cmdId] = cmd;
