@@ -191,7 +191,7 @@ ModManager.prototype.loadCoreMods = function(cb) {
  * the bot has already been started, only mods that were present in the
  * 'coremods' folder at start time can be loaded/unloaded.
  *
- * @param {String} modId The ID of a mod inthe 'mods' or 'coremods' folder to
+ * @param {String} modId The ID of a mod in the 'mods' or 'coremods' folder to
  *      be loaded
  * @param {Function} [cb] A callback function to be executed on completion.
  *      Arguments provided are:
