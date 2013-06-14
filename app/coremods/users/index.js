@@ -461,7 +461,9 @@ module.exports = function(config, client, modMan) {
 		var users = Object.keys(config.users).map(function(user) {
 			return '[' + config.users[user].perm + ']' + user;
 		}).sort(function(a, b) {
-			return a > b;
+			if (a > b) return 1;
+			if (a == b) return 0;
+			return -1;
 		});
 		client.notice(replyTo, 'All global users:');
 		client.notice(replyTo, users.join('  '));
