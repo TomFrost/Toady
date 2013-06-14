@@ -19,6 +19,12 @@ function padStr(str, len) {
 	return str;
 }
 
+function strSort(a, b) {
+	if (a > b) return 1;
+	if (a == b) return 0;
+	return -1;
+}
+
 /**
  * Help provides all user commands necessary to display mod and command
  * metadata in a digestible format.
@@ -181,9 +187,7 @@ module.exports = function(config, client, modMan) {
 	function showMain(nick, maxPerm) {
 		var fantasyChar = modMan.getMod('commandrunner').getFantasyChar(),
 			modCmds = getModCommands(maxPerm),
-			modIds = Object.keys(modCmds).sort(function(a, b) {
-				return a > b;
-			});
+			modIds = Object.keys(modCmds).sort(strSort);
 		var messages = [
 			'***** {nick} Help *****',
 			name + ' v' + version + ' written by ' + author,
@@ -268,9 +272,7 @@ module.exports = function(config, client, modMan) {
 	 * @param nick
 	 */
 	function showModList(nick) {
-		var modIds = modMan.getLoadedModIds().sort(function(a, b) {
-				return a > b;
-			}),
+		var modIds = modMan.getLoadedModIds().sort(strSort),
 			messages = [
 				'***** ' + client.nick + ' Help *****',
 				'For more information on any loaded mod, type:',
@@ -289,9 +291,7 @@ module.exports = function(config, client, modMan) {
 					if (!modMan.isLoaded(id))
 						availIds.push(id);
 				});
-				availIds = availIds.sort(function(a, b) {
-					return a > b;
-				});
+				availIds = availIds.sort(strSort);
 				messages.push(' ');
 				messages.push('Available to be loaded:');
 				messages.push(availIds.join(', '));
