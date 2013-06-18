@@ -151,6 +151,10 @@ function loadMod(modId, cb) {
 			catch (e) {
 				loadErr = new Error("Could not load mod '" + modId +
 					"': Module does not exist");
+				if (e.stack)
+					console.log(e.stack);
+				else
+					console.log(e);
 			}
 			this(loadErr, mod);
 		})
