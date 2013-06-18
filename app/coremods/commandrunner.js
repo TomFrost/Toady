@@ -164,8 +164,10 @@ module.exports = function(config, client, modMan) {
 	 * @param {String} text The text of the message
 	 */
 	function handleMessage(nick, to, text) {
-		var split = text.match(/^(\S+)\s*(.*)$/),
-			fantasy = split[1][0] == config.fantasyChar,
+		var split = text.match(/^\s*(\S+)?\s*(.*)$/);
+		if (!split[1])
+			split[1] = ' ';
+		var fantasy = split[1][0] == config.fantasyChar,
 			cmdId = (fantasy ? split[1].substr(1) : split[1]).toLowerCase(),
 			inChan = CHAN_PREFIXES.indexOf(to[0]) != -1,
 			cmdText = split[2],
