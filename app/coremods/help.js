@@ -124,7 +124,7 @@ module.exports = function(config, client, modMan) {
 	 * @param {Object} replace An object mapping placeholder text to the
 	 *      strings that the braces and placeholders should be replaced with
 	 */
-	function sendNotices(target, messages, replace) {
+	function sendHelp(target, messages, replace) {
 		messages.forEach(function(msg) {
 			if (replace) {
 				objUtil.forEach(replace, function(str, repl) {
@@ -162,7 +162,7 @@ module.exports = function(config, client, modMan) {
 			messages.push(cmd.desc);
 			messages = messages.concat(cmd.help);
 			messages.push('***** End of Help *****');
-			sendNotices(nick, messages, {
+			sendHelp(nick, messages, {
 				nick: client.nick,
 				"!": fantasyChar,
 				cmd: cmdId,
@@ -211,7 +211,7 @@ module.exports = function(config, client, modMan) {
 			messages.push(' ');
 		});
 		messages.push('***** End of Help *****');
-		sendNotices(nick, messages, {
+		sendHelp(nick, messages, {
 			nick: client.nick,
 			"!": fantasyChar
 		});
@@ -258,7 +258,7 @@ module.exports = function(config, client, modMan) {
 				}
 			}
 			messages.push('***** End of Help *****');
-			sendNotices(nick, messages, {
+			sendHelp(nick, messages, {
 				nick: client.nick
 			});
 		}
@@ -297,7 +297,7 @@ module.exports = function(config, client, modMan) {
 				messages.push(availIds.join(', '));
 			}
 			messages.push('***** End of Help *****');
-			sendNotices(nick, messages);
+			sendHelp(nick, messages);
 		});
 	}
 
@@ -355,6 +355,7 @@ commands",
 				],
 				pattern: /^(\S+)$/
 			}
-		}
+		},
+		sendHelp: sendHelp
 	};
 };
