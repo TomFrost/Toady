@@ -202,8 +202,10 @@ The function that executes when the function is called.  The arguments are:
 A brief one-liner description of what the command does.  Shown in `!help`.
 
 #### help: array
-An array of strings to be sent in the `!help` command.  The following
-placeholders will be automatically replaced with the appropriate contents:
+An array of strings to be sent in the `!help` command.  Each string will be
+sent in its own IRC NOTICE, so this can be utilized to control line breaks.
+The following placeholders will be automatically replaced with the appropriate
+contents:
 - *{!}* - The configured fantasy character
 - *{cmd}* - The name of the command
 - *{mod}* - The name of the mod (specified in the mod's `name` field)
