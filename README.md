@@ -148,19 +148,19 @@ The name given to your mod when it's listed with `!help` or `!viewmod`.
 #### version: string
 The version of your mod.  This should follow the semantic versioning guidelines
 at [semver.org](http://semver.org). **You can omit this if your mod has a
-package.json file with a version! Toady will pull it from there instead**
+package.json file with a version! Toady will pull it from there instead.**
 
 #### author: string
 Your name!  You can optionally specify your E-mail address, in the format
 `Your Name <your@email.com>`.  **You can omit this if your mod has a
-package.json file with an author! Toady will pull it from there instead**
+package.json file with an author! Toady will pull it from there instead.**
 
 #### desc: string
 A very brief, one-liner description of what your mod does.  This will show
 up in the `!viewmod` output.  **You can omit this if your mod has a
-package.json file with a description! Toady will pull it from there instead**
+package.json file with a description! Toady will pull it from there instead.**
 
-#### unload: function() *optional*
+#### unload: function() *(optional)*
 A function that will be called immediately before unloading this module in the
 ModManager.  **If any event listeners have been placed on the ModManager
 or the IRC client object, they MUST BE REMOVED by this function!** Toady cannot
@@ -168,14 +168,14 @@ enforce this, so it is up to you, the mod author, to make sure.  Toady will
 have unexpected and unstable behavior if this function does not remove all
 the mod's listeners.
 
-#### blockReload: boolean *optional, default false*
+#### blockReload: boolean *(optional, default false)*
 If true, this will stop your mod from being reloaded with the `!reloadmod`
 command.  While this can be convenient to stop the mod's "memory" from being
 wiped by an unsuspecting Owner or SuperUser, this is *extremely bad practice*.
 Use the config object to save changes rather than blocking your mod from
 being reloaded.
 
-#### blockUnload: boolean *optional, default false*
+#### blockUnload: boolean *(optional, default false)*
 If true, this will stop your mod from being unloaded with the `!unloadmod`
 command, but *not* through the `!reloadmod` command.  **This should only
 ever be used for mods that are core to the function of the bot**
@@ -206,31 +206,31 @@ An array of strings to be sent in the `!help` command.  Each string will be
 sent in its own IRC NOTICE, so this can be utilized to control line breaks.
 The following placeholders will be automatically replaced with the appropriate
 contents:
-- *{!}* - The configured fantasy character
-- *{cmd}* - The name of the command
-- *{mod}* - The name of the mod (specified in the mod's `name` field)
-- *{modId}* - The id of the mod (usually, its folder name in the mods folder)
-- *{nick}* - The nickname of the bot
-- *{version}* - The version number of the mod
+- **{!}** - The configured fantasy character
+- **{cmd}** - The name of the command
+- **{mod}** - The name of the mod (specified in the mod's `name` field)
+- **{modId}** - The id of the mod (usually, its folder name in the mods folder)
+- **{nick}** - The nickname of the bot
+- **{version}** - The version number of the mod
 
-#### minPermission: string *optional*
+#### minPermission: string *(optional)*
 The permission character of the lowest permission allowed to call this command.
 If omitted, the command won't be restricted by permission.  Toady recognizes
 the following permissions, in order from most to least privileged:
-- *O* - Owner. Full access to all commands, cannot be revoked.
-- *S* - SuperUser. Full access to all commands, except those which may impact other Owners or SuperUsers.
-- *P* - PowerUser. Limited access to global command set.
-- *~* - Channel founder
-- *&* - Channel admin
-- *@* - Channel op
-- *%* - Channel half-op
-- *+* - Voice
-- *""* - (Empty string) A user in a channel
+- **O** - Owner. Full access to all commands, cannot be revoked.
+- **S** - SuperUser. Full access to all commands, except those which may impact other Owners or SuperUsers.
+- **P** - PowerUser. Limited access to global command set.
+- **~** - Channel founder
+- **&** - Channel admin
+- **@** - Channel op
+- **%** - Channel half-op
+- **+** - Voice
+- **''** - (Empty string) A user in a channel
 
 The **O**, **S**, and **P** permissions are Toady-specfic and can be set with
 the `!adduser` and `!updateuser` commands.  All others come directly from IRC.
 
-#### pattern: RexExp *optional*
+#### pattern: RexExp *(optional)*
 The regex pattern that the command arguments must match in order for the
 function to be called.  If specified, the `args` argument in the handler
 function will be the result of the match -- so index 0 will be the entire
@@ -238,20 +238,20 @@ string, 1 will be the first paranthetical match, 2 will be the second, and so
 on.  If targetChannel or targetNick is specified as described below, this
 pattern will *NOT* be applied to the target argument.
 
-#### targetChannel: boolean *optional, default false*
+#### targetChannel: boolean *(optional, default false)*
 Setting this to `true` will require that the first argument to the command
 is a channel name, prefixed with `#` or `&`.  If the command is said in a
 channel using the fantasy char, the channel can be omitted and it will be
 assumed that the target is the same channel.  This value will be passed in the
 handler's `target` argument.
 
-#### targetNick: boolean *optional, default false*
+#### targetNick: boolean *(optional, default false)*
 Setting this to `true` will require that the first argument to the command
 is a user's nick.  **Note that this will *not* ensure that the nick is real
 or connected -- it just assumes the first argument is the target nick**.
 This value will be passed in the handler's `target` argument.
 
-#### hidden: boolean *optional, default false*
+#### hidden: boolean *(optional, default false)*
 Setting this to `true` will cause this command to be omitted from `!help`.
 This can be useful in games where certain commands would only make sense to
 users if the game is currently running.  The "hidden" flag can be turned on
