@@ -92,7 +92,7 @@ the most basic form of a mod:
 	 *
 	 * @param {Object} config Contains config fields specific to this mod
 	 * @param {Object} client The connected IRC client powering the bot
-	 * @param {Object} modMan A reference to the ModuleManager object,
+	 * @param {Object} modMan A reference to the ModManager object,
 	 *      responsible for loading/unloading mods and commands.
 	 * @returns {Object} The new Test mod
 	 */
@@ -162,7 +162,7 @@ package.json file with a description! Toady will pull it from there instead**
 
 #### unload: function() *optional*
 A function that will be called immediately before unloading this module in the
-ModuleManager.  **If any event listeners have been placed on the ModuleManager
+ModManager.  **If any event listeners have been placed on the ModManager
 or the IRC client object, they MUST BE REMOVED by this function!** Toady cannot
 enforce this, so it is up to you, the mod author, to make sure.  Toady will
 have unexpected and unstable behavior if this function does not remove all
@@ -250,6 +250,118 @@ Setting this to `true` will require that the first argument to the command
 is a user's nick.  **Note that this will *not* ensure that the nick is real
 or connected -- it just assumes the first argument is the target nick**.
 This value will be passed in the handler's `target` argument.
+
+#### hidden: boolean *optional, default false*
+Setting this to `true` will cause this command to be omitted from `!help`.
+This can be useful in games where certain commands would only make sense to
+users if the game is currently running.  The "hidden" flag can be turned on
+and off dynamically as needed.  It should **never** be used to exercise
+any form of security through obscurity.  Use *minPermission* to restrict
+access to commands.
+
+### Config
+The `config` argument passed to each mod is an object literal containing
+configuration fields.  The fields are loaded in the following order, with
+each step overwriting any existing fields from previous steps:
+- The mod's own module.exports.configDefaults object, if one exists
+- The mod_MODNAME-HERE section from the .yaml config file currently in use, if it exists
+- The config/CONFNAME-mod_MODNAME.json file, if it exists
+
+So if a mod named "test" is written with this at the bottom:
+
+	module.exports.configDefaults = {
+		delay: 12,
+		message: 'Hello!',
+		name: 'Ted'
+	};
+
+And **config/default.yaml** contains this block:
+
+	mod_test:
+	  delay: 5
+
+And the file **config/default-mod_test.json** contains this:
+
+	{
+		"message": "Yo!"
+	}
+
+Then the config object passed into the 'test' mod when it's loaded will be:
+
+	{
+		delay: 5,
+		message: "Yo!",
+		name: "Ted"
+	}
+
+Why the complexity?
+- module.exports.configDefaults allows you to define the default values your mod will be instantiated with, so that no error checking for nonexistant config values is necessary
+- The block in the .yaml file allows the bot owner to easily specify new config options
+- The .json file is what the config object itself saves when config.save() is called.
+
+#### config.save()
+The 'save' function is the only value that Toady itself adds to your config
+object, and it is non-enumable -- so iterating over your config values will not
+show 'save' as a property.  It's there, though, and calling it will write the
+file config/default-mod_MODNAME.json, where "default" is the name of the .yaml
+file currently in use.  Any saved config will be provided back to the mod if
+it's reloaded, or the bot is restarted.
+
+### Client
+The IRC client provided to each mod is an instance of martynsmith's
+fantastic [node-irc](https://github.com/martynsmith/node-irc) client, unaltered
+in any way except for configuring and connecting it according to the options
+defined in the configuration yaml file.
+
+The client object allows the bot to send messages, join, part, quit, change
+nicks, etc -- anything you would expect an IRC client to do.  It also tracks
+the bot's nick as well as the users and their permissions in the channels the
+bot is in, and exposes many events you can hook to be notified of new messages,
+nick changes, parts, and more.  Just skim [the node-irc documentation site](https://node-irc.readthedocs.org/en/latest/API.html)
+for details.
+
+Here are a few examples of how easy the client is to use:
+
+	client.say('#myChan', "HI GUYS! MY NAME IS " + client.nick + "!!!");
+
+	function nickHandler(oldnick, newnick, channels) {
+    	channels.forEach(function(channel) {
+    		client.say(channel, "Stop changing your name, " + newnick);
+    	});
+    }
+	client.on('nick', nickHandler);
+
+	// And your mod's 'unload' function MUST contain this line
+	// if you do the above:
+	// client.removeListener('nick', nickHandler);
+
+### ModManager
+The ModManager instance that gets passed to each mod on load is a singleton
+responsible for loading/unloading all mods, collecting command objects, and
+providing all of these things to other mods on request.  In addition to
+returning official mod properties in the resulting object literal, arbitrary
+properties can be added for other mods to take advantage of.  For example,
+the 'users' mod includes functions for finding and checking user permissions.
+If your mod needs to do that, you could call:
+
+	var usersMod = modMan.getMod('users');
+	client.say(channel, "You have the permission: " + usersMod.getPermission(nick));
+
+The ModManager also emits events for when mods and commands are
+loaded/unloaded, so if your mod needs to modify all new commands as they load
+(maybe your mod's goal is to remove permission requirements from all comamnds?),
+listening for those events is extremely easy.
+
+Since the use cases for accessing the ModManager are fairly rare, I'll refer to
+the very thorough in-code documentation in app/modmanager/ModManager.js to
+guide you to the different events and function calls.
+
+### Examples
+Learn faster from looking at code than reading docs? Nearly all of Toady's
+functionality happens in mods -- from the help commands, to finding and
+verifying user permissions, to even detecting and executing commands
+themselves.  All of these core mods are very thoroughly documented in the
+app/coremods folder.
 
 ## Distribute your mods on ribbit
 To get your mods on ribbit, all you need to do is publish your mod to NPM
