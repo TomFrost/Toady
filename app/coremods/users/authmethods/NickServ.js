@@ -11,7 +11,7 @@ const SWITCH_REGEX = /^Unknown command/;
 const TYPES = {
 	// The 'ACC' command is used by Atheme's NickServ
 	ACC: {
-		cmd: 'ACC {nick} *',
+		cmd: 'ACC {nick}',
 		regex: /(?:^|\s)(\S+) ACC (\d)/,
 		success: 3
 	},
