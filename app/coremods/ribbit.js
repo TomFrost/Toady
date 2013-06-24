@@ -107,10 +107,7 @@ module.exports = function(config, client, modMan) {
 		author: "Tom Frost",
 		commands: {
 			ribbit: {
-				handler: function(from, to, target, args) {
-					var inChan = false;
-					if (to[0] == '#' || to[0] == '&')
-						inChan = true;
+				handler: function(from, to, target, args, inChan) {
 					var replyTo = inChan ? to : from;
 					switch (args[1].toLowerCase()) {
 						case 'search': search(replyTo, args[2]); break;

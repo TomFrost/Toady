@@ -26,9 +26,8 @@ module.exports = function(config, client, modMan) {
 	 *      accepts arguments appropriate for use as a command handler
 	 */
 	function modAction(funcName, actText) {
-		return function(from, to, target, args) {
-			var inChannel = to[0] == '#' || to[0] == '&',
-				replyTo = inChannel ? to : from;
+		return function(from, to, target, args, inChan) {
+			var replyTo = inChan ? to : from;
 			modMan[funcName](args[0], function(err) {
 				client.notice(replyTo, err ? err.message :
 					("Mod '" + args[0] + "' " + actText + "."));

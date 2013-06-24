@@ -200,7 +200,7 @@ module.exports = function(config, client, modMan) {
 				modMan.emit('command', cmdArgs);
 				modMan.emit('command:' + cmdId, cmdArgs);
 				this.vars.cmd.handler(nick, to, this.vars.target,
-					this.vars.args);
+					this.vars.args, inChan);
 			})
 			.catch(function(err) {
 				if (err.userError)

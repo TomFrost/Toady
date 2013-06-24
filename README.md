@@ -191,12 +191,13 @@ users have the appropriate permissions, etc.  If your mod just needs to listen
 for IRC events and react to them, no commands are necessary.  But if you want
 someone to be able to say `!somecommand`, here's how:
 
-#### handler: function(from, to, target, args)
+#### handler: function(from, to, target, args, inChan)
 The function that executes when the function is called.  The arguments are:
 - *from* - The nick of the user calling the command
 - *to* - The bot's name if this was sent in a private message, or the channel the command was spoken in if not.
 - *target* - The channel or nick targeted for the command. This is configured below.
 - *args* - An array containing the arguments to this command.  If no *pattern* is specified below, this will have just one element: The entire string following the command or target.
+- *inChan* - True if the command was said in a channel (and thus 'to' is a channel name); false if the command was messaged privately (and this 'to' is the bot's nick).
 
 #### desc: string
 A brief one-liner description of what the command does.  Shown in `!help`.
