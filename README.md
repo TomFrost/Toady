@@ -300,13 +300,27 @@ Why the complexity?
 - The block in the .yaml file allows the bot owner to easily specify new config options
 - The .json file is what the config object itself saves when config.save() is called.
 
-#### config.save()
+Note that any mod can access any other mod's config object to read, write, and
+save with the following call. This should be used sparingly and only when
+absolutely necessary, as the target mod may not be prepared to handle dynamic
+changes in its config:
+
+    var otherModConfig = modMan.getMod('otherModId').config;
+
+#### config.save(_\[{Array} properties\]_, _\[{Function} callback\]_)
 The 'save' function is the only value that Toady itself adds to your config
 object, and it is non-enumable -- so iterating over your config values will not
 show 'save' as a property.  It's there, though, and calling it will write the
 file config/default-mod_MODNAME.json, where "default" is the name of the .yaml
 file currently in use.  Any saved config will be provided back to the mod if
 it's reloaded, or the bot is restarted.
+
+If _properties_ is omitted, all enumerable properties on the config object will
+be saved.  But _properties_ can be set to an array of strings representing
+the only config keys that should be saved in the resulting file.
+
+The optional callback function will be called with an Error object from
+_fs.writeFile_ if the write fails, or with no error upon success.
 
 ### Client
 The IRC client provided to each mod is an instance of martynsmith's
