@@ -31,11 +31,29 @@ function getPath(modId) {
  * @param {String} modId The modId for which to generate the closure.  This
  *      determines the filename to which the JSON will be saved.
  * @returns {Function} A closure which, when called, will save the enumerable
- *      local properties of 'this' as JSON to a file.
+ *      local properties of 'this' as JSON to a file.  Arguments are:
+ *          - {Array} OPTIONAL: An array of top-level properties to save. If
+ *            omitted, every enumerable property will be saved.
+ *          - {Function} OPTIONAL: A callback function to be executed when
+ *            complete.  Arguments:
+ *              - {Error} If an error occurred while saving the file.
  */
 var getSaveFunc = function(modId) {
-	return function(cb) {
-		fs.writeFile(getPath(modId), JSON.stringify(this, null, '\t'), cb);
+	return function(props, cb) {
+		var serial = this,
+			self = this;
+		if (typeof props == 'function') {
+			cb = props;
+			props = null;
+		}
+		if (props) {
+			serial = {};
+			props.forEach(function(key) {
+				if (self.hasOwnProperty(key))
+					serial[key] = self[key];
+			});
+		}
+		fs.writeFile(getPath(modId), JSON.stringify(serial, null, '\t'), cb);
 	};
 };
 
@@ -115,7 +133,7 @@ function getConfig(modId, defaults, cb) {
 			if (success) {
 				conf = objUtil.deepMerge(conf, savedConf);
 				Object.defineProperty(conf, 'save', {
-					value: getSaveFunc(modId)
+					value: getSaveFunc(modId).bind(conf)
 				});
 				cb(null, conf);
 			}
