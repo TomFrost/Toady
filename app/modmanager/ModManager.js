@@ -8,6 +8,7 @@ var events = require("events"),
 	fs = require('fs'),
 	util = require('util'),
 	config = require('config'),
+	semver = require('semver'),
 	Seq = require('seq'),
 	objUtil = require('../util/Object'),
 	ModConfig = require('./ModConfig'),
@@ -28,6 +29,8 @@ const MOD_DEFAULTS = {
 	blockUnload: false,
 	blockReload: false
 };
+
+const TOADY_VERSION = require('../../package.json').version;
 
 /**
  * The ModManager is responsible for the loading and unloading of mods,
@@ -225,6 +228,16 @@ ModManager.prototype.loadMod = function(modId, cb) {
 		.seq(function getMod() {
 			ModLoader.loadMod(modId, this);
 		})
+		.seq(function checkVersion(modFunc, pkgJson) {
+			if (modFunc.minToadyVersion &&
+					semver.lt(TOADY_VERSION, modFunc.minToadyVersion)) {
+				this(new Error(modId + " requires Toady version " +
+					modFunc.minToadyVersion + " or later.  You are running " +
+					TOADY_VERSION + "."));
+			}
+			else
+				this(null, modFunc, pkgJson);
+		})
 		.seq(function getModConfig(modFunc, pkgJson) {
 			this.vars.modFunc = modFunc;
 			this.vars.pkgJson = pkgJson;
@@ -291,6 +304,7 @@ commands are already registered: " +
 			cb(null, mod);
 		})
 		.catch(function(err) {
+			ModLoader.unloadMod(modId);
 			cb(err);
 		});
 };
@@ -309,7 +323,12 @@ ModManager.prototype.loadMods = function(modIds, cb) {
 	var self = this;
 	Seq(modIds)
 		.seqEach(function(modId) {
-			self.loadMod(modId, this);
+			var next = this;
+			self.loadMod(modId, function(err) {
+				if (err)
+					console.log(err.message);
+				next();
+			});
 		})
 		.seq(function() {
 			cb();
