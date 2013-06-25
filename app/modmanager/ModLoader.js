@@ -7,6 +7,7 @@
 var fs = require('fs'),
 	path = require('path'),
 	objUtil = require('../util/Object'),
+	Ribbit = require('../ribbit/Ribbit'),
 	Seq = require('seq');
 
 const CORE_MOD_DIR = __dirname + '/../coremods';
@@ -198,7 +199,8 @@ function unloadMod(modId, cb) {
 				modKey = require.resolve(dir + '/' + modId),
 				modObj = require.cache[modKey];
 			if (modObj) {
-				var regex = new RegExp('\/' + modId);
+				var regex = new RegExp('\/(?:' + Ribbit.MOD_PREFIX +
+					')?' + modId);
 				objUtil.forEach(require.cache, function(key) {
 					if (key.match(regex))
 						delete require.cache[key];
