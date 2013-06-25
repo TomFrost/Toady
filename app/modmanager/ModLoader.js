@@ -185,7 +185,7 @@ function loadMod(modId, cb) {
  * {@link ModManager#unloadMod}.
  *
  * @param {String} modId The ID of the mod to be unloaded.
- * @param {Function} cb A callback function to be executed on completion.
+ * @param {Function} [cb] A callback function to be executed on completion.
  *      Arguments provided are:
  *          - {Error} An error object, if an error occurred
  */
@@ -203,9 +203,10 @@ function unloadMod(modId, cb) {
 					if (key.match(regex))
 						delete require.cache[key];
 				});
-				cb(null);
+				if (cb)
+					cb(null);
 			}
-			else {
+			else if (cb) {
 				cb(new Error("No loaded modules belonging to '" + modId +
 					"' were found."));
 			}
