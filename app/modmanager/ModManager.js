@@ -84,7 +84,9 @@ var ModManager = function() {
 util.inherits(ModManager, events.EventEmitter);
 
 /**
- * Gets a loaded, individual command object.
+ * Gets a loaded, individual command object.  The command returned will have
+ * one additional field not specified by the command itself:
+ *      - {String} id: The cmdId, or key, of this command
  *
  * @param {String} cmdId The name of the command to retrieve
  * @returns {Object|null} The command object, or null if no such command
@@ -95,7 +97,10 @@ ModManager.prototype.getCommand = function(cmdId) {
 };
 
 /**
- * Gets a mapping of all command IDs to their command object.
+ * Gets a mapping of all command IDs to their command object.  The commands
+ * returned will have one additional field not specified by the commands
+ * themselves:
+ *      - {String} id: The cmdId, or key, of the command
  *
  * @returns {Object} The hash of IDs to objects
  */
@@ -113,7 +118,13 @@ ModManager.prototype.getLoadedModIds = function() {
 };
 
 /**
- * Retrieves a given mod if loaded.
+ * Retrieves a given mod if loaded.  The mod returned will have two
+ * additional fields not specified by the mod itself:
+ *      - {String} id: The modId for this mod
+ *      - {Object} config: The mod's config object
+ *
+ * Exercise extreme caution in modifying another mod's config object.  The mod
+ * may not be prepared to handle dynamic config changes.
  *
  * @param modId The ID of the mod to be returned
  * @returns {Object|null} The mod, or null if the mod is not loaded or not
@@ -124,7 +135,13 @@ ModManager.prototype.getMod = function(modId) {
 };
 
 /**
- * Gets an array of all loaded mod objects.
+ * Gets an array of all loaded mod objects.  The mods returned will have two
+ * additional fields not specified by the mods themselves:
+ *      - {String} id: The modId for the mod
+ *      - {Object} config: The mod's config object
+ *
+ * Exercise extreme caution in modifying another mod's config object.  The mod
+ * may not be prepared to handle dynamic config changes.
  *
  * @returns {Array} All loaded mod objects.
  */
@@ -233,7 +250,10 @@ ModManager.prototype.loadMod = function(modId, cb) {
 						modPkg.author = pkgJson.author.name;
 				}
 			}
-			var mod = objUtil.merge(MOD_DEFAULTS, modPkg, rawMod);
+			var mod = objUtil.merge(MOD_DEFAULTS, modPkg, rawMod, {
+				id: modId,
+				config: modConf
+			});
 			this.vars.mod = mod;
 			this(null, mod);
 		})
@@ -264,7 +284,6 @@ commands are already registered: " +
 				self.emit('cmdloaded', val);
 				self.emit('cmdloaded:' + key, val);
 			});
-			mod.id = modId;
 			self._mods[modId] = mod;
 			console.log('Loaded mod:', modId);
 			self.emit('modloaded', mod);
