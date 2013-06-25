@@ -371,6 +371,20 @@ Since the use cases for accessing the ModManager are fairly rare, I'll refer to
 the very thorough in-code documentation in app/modmanager/ModManager.js to
 guide you to the different events and function calls.
 
+### Mod Metadata
+Toady mods all assign module.exports to a function.  However, some features
+can be impacted before the mod is fully loaded by assigning other properties
+to module.exports as well.
+
+#### module.exports.configDefaults = {Object}
+A mapping of config keys to their default value, which will be passed in the
+module's _'config'_ argument at load time unless a key or keys have been
+overridden through other means.  See **Config** above for details.
+
+#### module.exports.minToadyVersion = {String}
+The minimum version of Toady with which this mod is compatible.  Toady will
+refuse to load the mod if this value is greater than Toady's own version.
+
 ### Examples
 Learn faster from looking at code than reading docs? Nearly all of Toady's
 functionality happens in mods -- from the help commands, to finding and
