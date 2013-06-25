@@ -177,7 +177,7 @@ module.exports = function(config, client, modMan) {
 			})
 			.seq(function deleteUser() {
 				delete config.users[lowNick];
-				config.save(this);
+				config.save(['users'], this);
 			})
 			.seq(function complete() {
 				client.notice(replyTo, 'User [' + perm + ']' + targetNick +
@@ -575,7 +575,7 @@ module.exports = function(config, client, modMan) {
 				config.users[lowNick].perm = perm;
 				if (authMethod && authMethod != config.defaultAuthMethod)
 					config.users[lowNick].authMethod = authMethod;
-				config.save(this);
+				config.save(['users'], this);
 			})
 			.seq(function complete() {
 				client.notice(replyTo, 'User [' + perm + ']' + nick +
