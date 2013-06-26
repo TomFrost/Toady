@@ -24,9 +24,7 @@ function getPath(modId) {
 
 /**
  * Gets a closure that will JSONify any enumerable properties on 'this' and
- * save it to a file unique to the given modId when called.  The closure
- * takes one argument: A callback function that will be called when the
- * file save is complete (with an Error if an error occurred).
+ * save it to a file unique to the given modId when called.
  *
  * @param {String} modId The modId for which to generate the closure.  This
  *      determines the filename to which the JSON will be saved.
