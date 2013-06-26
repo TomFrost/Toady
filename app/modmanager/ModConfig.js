@@ -88,6 +88,8 @@ var getSaveFunc = function(modId) {
  *          if (err) console.log(err);
  *          else console.log('Saved!');
  *      }
+ *      // OR:
+ *      config.save([prop1, prop2, prop4]);
  *
  * Anything saved will still exist when the bot is restarted or the module
  * is reloaded, thanks to step 3 above.
@@ -115,6 +117,33 @@ var getSaveFunc = function(modId) {
 function getConfig(modId, defaults, cb) {
 	var conf = objUtil.deepMerge(defaults || {},
 			config[CONFIG_PREFIX + modId] || {});
+	getModConfigFile(modId, function(err, modFile) {
+		conf = objUtil.deepMerge(conf, modFile);
+		Object.defineProperty(conf, 'save', {
+			value: getSaveFunc(modId).bind(conf)
+		});
+		cb(null, conf);
+	});
+}
+
+/**
+ * Gets the contents of the mod's JSON-formatted config file, parses it, and
+ * returns it in a callback.  If the config file does not (yet) exist, an
+ * empty object will be passed back instead.
+ *
+ * Note that, unlike {@link #getConfig}, the object produced by this function
+ * will NOT be merged from any other config source and will NOT contain a
+ * save() function to persist changes.  The contents of the mod config file
+ * will be only what the mod itself was responsible for saving manually.
+ *
+ * @param {String} modId The ID of the mod whose file should be loaded
+ * @param {Function} cb A callback function to be executed on completion. Args:
+ *      - {Error} An error object, if an error occurred.  Most likely errors
+ *          include issues reading the file (excepting the file not existing)
+ *          and inability to parse the file's JSON.
+ *      - {Object} The parsed config object stored in the file
+ */
+function getModConfigFile(modId, cb) {
 	fs.readFile(getPath(modId), function(err, json) {
 		if (err && err.code != 'ENOENT')
 			cb(err);
@@ -130,13 +159,8 @@ function getConfig(modId, defaults, cb) {
 					cb(e);
 				}
 			}
-			if (success) {
-				conf = objUtil.deepMerge(conf, savedConf);
-				Object.defineProperty(conf, 'save', {
-					value: getSaveFunc(modId).bind(conf)
-				});
-				cb(null, conf);
-			}
+			if (success)
+				cb(null, savedConf || {});
 		}
 	});
 }
@@ -144,5 +168,6 @@ function getConfig(modId, defaults, cb) {
 module.exports = {
 	CONFIG_PATH: CONFIG_PATH,
 	CONFIG_PREFIX: CONFIG_PREFIX,
-	getConfig: getConfig
+	getConfig: getConfig,
+	getModConfigFile: getModConfigFile
 };
