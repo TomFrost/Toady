@@ -97,9 +97,9 @@ var getSaveFunc = function(modId) {
  * Note that calling this function consecutive times with the same
  * modId/defaults will NOT return the same config object, and is not an
  * appropriate method for changing the config for a mod from a different mod.
- * If that functionality is necessary, it's strongly recommended to expose
- * functions into your module's API to allow any necessary config items to be
- * changed externally when your mod is loaded.
+ * If that functionality is necessary, it's strongly recommended to access the
+ * 'config' property of a mod to read its values, but change those values only
+ * with the Config mod's setConfig() function.
  *
  * In the Toady framework, the config object returned by this function is
  * passed directly to each mod when the mod is loaded.
