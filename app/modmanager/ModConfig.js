@@ -142,5 +142,7 @@ function getConfig(modId, defaults, cb) {
 }
 
 module.exports = {
+	CONFIG_PATH: CONFIG_PATH,
+	CONFIG_PREFIX: CONFIG_PREFIX,
 	getConfig: getConfig
 };
