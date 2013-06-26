@@ -220,6 +220,8 @@ module.exports = function(config, client, modMan) {
 	/**
 	 * Shows the help page for a given mod, limiting the command listing to
 	 * only commands requiring permissions equal to or less than maxPerm.
+	 * If maxPerm is S or O, the config options for the mod will be also be
+	 * shown (if applicable).
 	 *
 	 * @param {String} nick The user to whom the help page should be sent
 	 * @param {String} modId The ID of the mod for which to display help
@@ -256,6 +258,25 @@ module.exports = function(config, client, modMan) {
 							cmd.desc);
 					});
 				}
+			}
+			if (mod.configItems && pMod.permEqualOrGreater(maxPerm, 'S')) {
+				messages.push(' ');
+				messages.push('Config Items (To set: !viewmod config):');
+				objUtil.forEach(mod.configItems, function(key, def) {
+					var val;
+					switch (def.type) {
+						case 'boolean':
+							val = mod.config[key] ? 'true' : 'false';
+							break;
+						case 'number':
+							val = mod.config[key] || 0;
+							break;
+						default:
+							val = mod.config[key] || '';
+					}
+					messages.push('  ' + padStr(key, 15) + ' ' +
+						(def.desc || '') + ' (' + val + ')');
+				});
 			}
 			messages.push('***** End of Help *****');
 			sendHelp(nick, messages, {
