@@ -2,6 +2,12 @@
 Wickedly extensible IRC bot written in Node.js.  Load and reload mods without reconnecting.
 
 ## Changelog
+### 0.3.0
+- **Config:** Add new core mod to view and edit mods' config options live
+- **Help:** Display configItems in !viewmod for SuperUsers
+- **ModConfig:** CONFIG_PATH and CONFIG_PREFIX are now exported
+- **ModConfig:** getModConfigFile is now exported to load only a mod's saved config
+
 ### 0.2.0
 - **ModConfig:** Added config.save() argument to save only specified config properties.
 - **ModLoader:** Support full Node.js unloading of Ribbit-installed mods.  Previously, Ribbit-installed mods would not be deleted from the Node.js require() cache.

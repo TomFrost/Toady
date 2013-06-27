@@ -1,6 +1,6 @@
 {
   "name": "Toady",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Crazily extensible IRC bot with reload-without-restart modules and channel-based permissions",
   "main": "app/Toady.js",
   "scripts": {
