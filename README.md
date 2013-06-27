@@ -168,6 +168,26 @@ enforce this, so it is up to you, the mod author, to make sure.  Toady will
 have unexpected and unstable behavior if this function does not remove all
 the mod's listeners.
 
+#### configItems: object *(optional)*
+A mapping of configuration keys to objects defining that key. The object
+has the following properties, all of which are optional:
+
+	{
+		desc: "Describe what this option means in a one-liner",
+		type: "number", // Either string, boolean, or number.
+		validate: function(value) { return true; }
+	}
+
+These items will be made available to be changed by the 'config' core module.
+If a type is specified, the user input will be cast to that type. If validate
+is specified, the value will be passed to it and the function can return one
+of three things:
+	- {Error} If validation failed and an error message should be provided
+		to the user
+	- {boolean} false if validation failed and a generic error message
+		should be provided to the user
+	- {boolean} true if validation passed
+
 #### blockReload: boolean *(optional, default false)*
 If true, this will stop your mod from being reloaded with the `!reloadmod`
 command.  While this can be convenient to stop the mod's "memory" from being
