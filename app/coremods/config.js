@@ -53,7 +53,7 @@ module.exports = function(config, client, modMan) {
 			.seq(function assertConfigItemExists() {
 				if (!mod.configItems || !mod.configItems[key]) {
 					this(new Error("Config item " + modId + '.' + key +
-						" does not exist or can't be edited live."));
+						" does not exist or cannot be edited live."));
 				}
 				else this();
 			})
@@ -80,6 +80,42 @@ module.exports = function(config, client, modMan) {
 			.catch(function(err) {
 				if (cb)
 					cb(err);
+			});
+	}
+
+	/**
+	 * Shows the current value for a config key to a nick or channel.
+	 *
+	 * @param {String} replyTo The nick or channel to which messages should
+	 *      be sent
+	 * @param {String} modId The ID of the mod whose config will be viewed
+	 * @param {String} key The config key to be shown
+	 */
+	function showConfig(replyTo, modId, key) {
+		var mod = modMan.getMod(modId.toLowerCase());
+		Seq()
+			.seq(function assertModExists() {
+				if (!mod) {
+					this(new Error("Mod '" + modId +
+						"' does not exist or is not loaded."));
+				}
+				else this();
+			})
+			.seq(function assertConfigItemExists() {
+				if (!mod.configItems || !mod.configItems[key]) {
+					this(new Error("Config item " + modId + '.' + key +
+						" does not exist or cannot be edited live."));
+				}
+				else this();
+			})
+			.seq(function displayVal() {
+				client.notice(replyTo, mod.id + '.' + key + ': {' +
+					(mod.configItems[key].type || 'string') + '} ' +
+					(mod.config[key] === undefined ? "(unset)" :
+						mod.config[key]));
+			})
+			.catch(function(err) {
+				client.notice(replyTo, err.message);
 			});
 	}
 
@@ -176,6 +212,20 @@ module.exports = function(config, client, modMan) {
 					"  {!}{cmd} changreeter.greeting Howdy! I'm {nick}!"
 				],
 				pattern: /^([a-zA-Z0-9_\-]+)\.([a-zA-Z0-9_]+)\s(.+)$/,
+				minPermission: 'S'
+			},
+			viewconfig: {
+				handler: function(from, to, target, args, inChan) {
+					showConfig(inChan ? to : from, args[1], args[2]);
+				},
+				desc: "Shows the current value of a mod's config option",
+				help: [
+					"Format: {cmd} <modID>.<configKey>",
+					"Example:",
+					"  /msg {nick} {cmd} somelogger.mysqlPort",
+					"  {!}{cmd} changreeter.greeting"
+				],
+				pattern: /^([a-zA-Z0-9_\-]+)\.([a-zA-Z0-9_]+)$/,
 				minPermission: 'S'
 			}
 		},
