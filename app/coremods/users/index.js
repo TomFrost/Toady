@@ -73,7 +73,7 @@ function getPermName(permChar) {
  *      againstPerm; false otherwise
  */
 function permEqualOrGreater(checkPerm, againstPerm) {
-	return PERMS[checkPerm].level >= PERMS[againstPerm].level;
+	return (PERMS[checkPerm] || {level: -1}).level >= PERMS[againstPerm].level;
 }
 
 /**
@@ -265,7 +265,7 @@ module.exports = function(config, client, modMan) {
 			.seq(function findHighestChannelPerm() {
 				var highPerm = null;
 				objUtil.forEach(client.chans, function(chan, props) {
-					if (props.users[nick]) {
+					if (props.users.hasOwnProperty(nick)) {
 						if (highPerm === null || permEqualOrGreater(
 								props.users[nick], highPerm)) {
 							highPerm = props.users[nick];
