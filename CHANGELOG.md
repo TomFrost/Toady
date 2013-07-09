@@ -2,6 +2,12 @@
 Wickedly extensible IRC bot written in Node.js.  Load and reload mods without reconnecting.
 
 ## Changelog
+### 0.3.1
+- **IRC Client:** Make the flood protection delay configurable
+- **ModLoader:** Better error reporting on mods that fail to load
+- **Users:** Fix crash when non-permissioned user calls viewmod on a mod with permissioned commands
+- **Users:** Don't allow users to edit other permissioned users who currently rank higher than them, regardless as to which rank they are being given
+
 ### 0.3.0
 - **Config:** Add new core mod to view and edit mods' config options live
 - **Help:** Display configItems in !viewmod for SuperUsers
