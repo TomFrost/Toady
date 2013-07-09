@@ -10,7 +10,7 @@ server:
     - "#toadytest"
   messageLength: 512
   # The number of milliseconds to pause between messages; 0 to disable
-  floodDelay: 0
+  floodDelay: 250
 
 identity:
   nick: Toady
