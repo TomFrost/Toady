@@ -23,8 +23,8 @@ var client = new irc.Client(
 		secure: config.server.ssl || false,
 		selfSigned: true,
 		certExpired: true,
-		floodProtection: false,
-		floodProtectionDelay: 1000,
+		floodProtection: !!config.server.floodDelay,
+		floodProtectionDelay: config.server.floodDelay,
 		stripColors: true,
 		channelPrefixes: "&#",
 		messageSplit: config.server.messageLength || 512
