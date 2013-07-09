@@ -542,11 +542,11 @@ module.exports = function(config, client, modMan) {
 		Seq()
 			.seq(function checkExists() {
 				if (existing != undefined) {
-					if (!existing && config.users[lowNick]) {
+					if (!existing && !isNew) {
 						this(new Error("User '" + nick +
 							"' already exists."));
 					}
-					else if (existing && !config.users[lowNick])
+					else if (existing && isNew)
 						this(new Error("User '" + nick + "' not found."));
 					else
 						this();
@@ -557,8 +557,15 @@ module.exports = function(config, client, modMan) {
 				getGlobalPerm(creator, this);
 			})
 			.seq(function checkPerm(cPerm) {
+				var tPerm;
+				if (!isNew)
+					tPerm = config.users[lowNick].perm;
 				if (!cPerm || (cPerm != 'O' && perm != 'P')) {
-					this(new Error("Sorry, you can't make new '" + perm +
+					this(new Error("Sorry, you can't set users to '" + perm +
+						"'."));
+				}
+				else if (tPerm && PERMS[cPerm].level <= PERMS[tPerm].level) {
+					this(new Error("Sorry, you can't modify '" + tPerm +
 						"' users."));
 				}
 				else this();
