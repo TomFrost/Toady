@@ -16,6 +16,8 @@ var events = require("events"),
 	client = require('../irc/Client'),
 	ribbit = require('../ribbit/Ribbit');
 
+const TOADY_VERSION = require('../../package.json').version;
+
 /**
  * A set of defaults to be applied to any loaded mod. Mods should probably
  * override most of these.
@@ -24,13 +26,11 @@ var events = require("events"),
 const MOD_DEFAULTS = {
 	name: 'Unnamed Mod',
 	desc: "This module's developer should probably write a description",
-	version: '0.0.0',
+	version: TOADY_VERSION,
 	author: 'Unknown',
 	blockUnload: false,
 	blockReload: false
 };
-
-const TOADY_VERSION = require('../../package.json').version;
 
 /**
  * The ModManager is responsible for the loading and unloading of mods,

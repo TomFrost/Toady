@@ -103,7 +103,6 @@ module.exports = function(config, client, modMan) {
 	return {
 		name: "Ribbit",
 		desc: "IRC interface for the Ribbit mod management system",
-		version: "0.1.0",
 		author: "Tom Frost",
 		commands: {
 			ribbit: {

@@ -38,7 +38,6 @@ module.exports = function(config, client, modMan) {
 	return {
 		name: 'Mod Control',
 		desc: "Allows mods to be loaded and unloaded dynamically",
-		version: '0.1.0',
 		author: 'Tom Frost',
 		commands: {
 			loadmod: {

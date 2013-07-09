@@ -191,7 +191,6 @@ module.exports = function(config, client, modMan) {
 	return {
 		name: 'Config',
 		desc: "Allows mods to expose configuration items for live changes",
-		version: '0.1.0',
 		author: 'Tom Frost',
 		commands: {
 			setconfig: {

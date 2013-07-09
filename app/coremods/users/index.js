@@ -596,7 +596,6 @@ module.exports = function(config, client, modMan) {
 	return {
 		name: 'Permissions',
 		desc: "Provides user permission checking per channel or globally",
-		version: '0.1.0',
 		author: 'Tom Frost',
 		commands: {
 			viewperm: {

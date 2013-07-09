@@ -216,7 +216,6 @@ module.exports = function(config, client, modMan) {
 	return {
 		name: 'Command Runner',
 		desc: "Handles the execution of user-triggered commands",
-		version: '0.1.0',
 		author: 'Tom Frost',
 		blockUnload: true,
 		unload: function() {

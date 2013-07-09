@@ -325,7 +325,6 @@ module.exports = function(config, client, modMan) {
 	return {
 		name: 'Help',
 		desc: "Provides help for bot commands",
-		version: '0.1.0',
 		author: 'Tom Frost',
 		commands: {
 			help: {

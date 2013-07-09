@@ -17,7 +17,6 @@ module.exports = function(config, client, modMan) {
 		name: 'Remote Control',
 		desc: "Allows for remote execution of the IRC client's primary \
 functions",
-		version: '0.1.0',
 		author: 'Tom Frost',
 		commands: {
 			me: {
