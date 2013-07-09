@@ -245,9 +245,17 @@ ModManager.prototype.loadMod = function(modId, cb) {
 		})
 		.seq(function initMod(modConf) {
 			var modFunc = this.vars.modFunc,
-				rawMod = modFunc(modConf, client, self),
 				pkgJson = this.vars.pkgJson,
-				modPkg = {};
+				modPkg = {},
+				rawMod, err;
+			try {
+				rawMod = modFunc(modConf, client, self);
+			}
+			catch (e) {
+				rawMod = {};
+				err = new Error("Mod '" + modId + "' is improperly formatted");
+				err.known = true;
+			}
 			if (pkgJson) {
 				if (pkgJson.name)
 					modPkg.name = pkgJson.name.replace(ribbit.MOD_PREFIX, '');
@@ -268,7 +276,7 @@ ModManager.prototype.loadMod = function(modId, cb) {
 				config: modConf
 			});
 			this.vars.mod = mod;
-			this(null, mod);
+			this(err, mod);
 		})
 		.seq(function checkCommandCollisions(mod) {
 			var collisions = [],
@@ -326,7 +334,7 @@ ModManager.prototype.loadMods = function(modIds, cb) {
 			var next = this;
 			self.loadMod(modId, function(err) {
 				if (err)
-					console.log(err.message);
+					console.log(err.known ? err.message : err.stack);
 				next();
 			});
 		})
