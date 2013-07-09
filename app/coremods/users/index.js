@@ -530,10 +530,10 @@ module.exports = function(config, client, modMan) {
 	 * @param {String} perm The permission char to assign to this user
 	 * @param {String|null} authMethod The auth method to use for this
 	 *      user's account, or null to accept the default (recommended)
-	 * @param {boolean} existing true if the nick's account is already
+	 * @param {boolean} [existing] true if the nick's account is already
 	 *      existing, or false if it should be created.  If the status of
 	 *      the account does not coincide with this value, an error will be
-	 *      reported.
+	 *      reported. Omit to eliminate this check.
 	 */
 	function userSetPermission(creator, replyTo, nick, perm, authMethod,
 			existing) {
