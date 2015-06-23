@@ -1,6 +1,6 @@
 /*
  * Toady
- * Copyright 2013 Tom Frost
+ * Copyright 2015 Tom Shawver
  */
 
 // NPM, why do you use stderr for non-error output? Uncool.
