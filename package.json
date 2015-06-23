@@ -1,7 +1,7 @@
 {
   "name": "Toady",
-  "version": "0.3.1",
-  "description": "Crazily extensible IRC bot with reload-without-restart modules and channel-based permissions",
+  "version": "1.0.0",
+  "description": "Crazily extensible chat bot with reload-without-restart modules and channel-based permissions",
   "main": "app/Toady.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,15 +11,17 @@
     "type": "git",
     "url": "https://github.com/TomFrost/Toady.git"
   },
-  "author": "Tom Frost <tom@frosteddesign.com>",
-  "license": "BSD",
+  "author": "Tom Shawver <tom@frosteddesign.com>",
+  "license": "MIT",
   "dependencies": {
-    "npm": "~1.2.27",
-    "config": "~0.4.25",
-    "yaml": "~0.2.3",
-    "irc": "~0.3.6",
-    "seq": "~0.3.5",
-    "rimraf": "~2.1.4",
-    "semver": "~2.0.8"
+    "config": "^0.4.37",
+    "irc": "^0.3.12",
+    "npm": "^1.2.8000",
+    "rimraf": "^2.1.4",
+    "semver": "^2.0.11",
+    "yaml-js": "^0.1.1"
+  },
+  "devDependencies": {
+    "eslint": "^0.23.0"
   }
 }
