@@ -11,26 +11,26 @@
  * @throws {Error} if an unsupported element is encountered.
  */
 function clone(obj) {
-	if (obj === null || typeof obj != "object") return obj;
-	var copy, i, len;
-	if (obj instanceof Date) {
-		copy = new Date();
-		copy.setTime(obj.getTime());
-		return copy;
-	}
-	if (obj instanceof Array) {
-		copy = [];
-		for (i = 0, len = obj.length; i < len; ++i)
-			copy[i] = clone(obj[i]);
-		return copy;
-	}
-	if (obj instanceof Object) {
-		copy = {};
-		for (var attr in obj)
-			if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
-		return copy;
-	}
-	throw new Error("Could not clone; element not supported.");
+  if (obj === null || typeof obj != "object") return obj;
+  var copy, i, len;
+  if (obj instanceof Date) {
+    copy = new Date();
+    copy.setTime(obj.getTime());
+    return copy;
+  }
+  if (obj instanceof Array) {
+    copy = [];
+    for (i = 0, len = obj.length; i < len; ++i)
+      copy[i] = clone(obj[i]);
+    return copy;
+  }
+  if (obj instanceof Object) {
+    copy = {};
+    for (var attr in obj)
+      if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
+    return copy;
+  }
+  throw new Error("Could not clone; element not supported.");
 }
 
 /**
@@ -49,30 +49,30 @@ function clone(obj) {
  * @return {Object} The completed, merged object.
  */
 function deepMerge(obj1, obj2, resolveConflict) {
-	if (!resolveConflict)
-		resolveConflict = function(val1, val2) { return val2; };
-	var merged = {},
-		key;
-	for (key in obj2) {
-		if (obj2.hasOwnProperty(key)) {
-			if (obj1.hasOwnProperty(key)) {
-				if (typeof obj2[key] == 'object' &&
-					typeof obj1[key] == "object") {
-					merged[key] = deepMerge(obj1[key], obj2[key],
-						resolveConflict);
-				}
-				else
-					merged[key] = resolveConflict(obj1[key], obj2[key]);
-			}
-			else
-				merged[key] = clone(obj2[key]);
-		}
-	}
-	for (key in obj1) {
-		if (obj1.hasOwnProperty(key) && !merged.hasOwnProperty(key))
-			merged[key] = clone(obj1[key]);
-	}
-	return merged;
+  if (!resolveConflict)
+    resolveConflict = function(val1, val2) { return val2; };
+  var merged = {},
+    key;
+  for (key in obj2) {
+    if (obj2.hasOwnProperty(key)) {
+      if (obj1.hasOwnProperty(key)) {
+        if (typeof obj2[key] == 'object' &&
+          typeof obj1[key] == "object") {
+          merged[key] = deepMerge(obj1[key], obj2[key],
+            resolveConflict);
+        }
+        else
+          merged[key] = resolveConflict(obj1[key], obj2[key]);
+      }
+      else
+        merged[key] = clone(obj2[key]);
+    }
+  }
+  for (key in obj1) {
+    if (obj1.hasOwnProperty(key) && !merged.hasOwnProperty(key))
+      merged[key] = clone(obj1[key]);
+  }
+  return merged;
 }
 
 /**
@@ -86,30 +86,32 @@ function deepMerge(obj1, obj2, resolveConflict) {
  * @return {String} The available key.
  */
 function findFreeKey(obj, key, separator) {
-	var orig = key,
-		nextNum = 0;
-	if (!separator)
-		separator = '';
-	while (obj.hasOwnProperty(key))
-		key = orig + separator + nextNum++;
-	return key;
+  var orig = key,
+    nextNum = 0;
+  if (!separator)
+    separator = '';
+  while (obj.hasOwnProperty(key))
+    key = orig + separator + nextNum++;
+  return key;
 }
 
 /**
  * Executes a given function once for every key/value pair in the object.  Note
  * that hasOwnProperty will be checked for each key before calling.
- *
  * @param {Object} obj The object to be iterated through
  * @param {Function} cb The callback function to be executed for each key/value
- *      pair.  Arguments provided are:
- *          - {String} The key
- *          - {*} The value
+ *    pair.  Arguments provided are:
+ *      - {string} The key
+ *      - {*} The value
+ * @param {Object} [context] An optional context object in which to execute the
+ *    callback function
  */
-function forEach(obj, cb) {
-	for (var key in obj) {
-		if (obj.hasOwnProperty(key))
-			cb(key, obj[key])
-	}
+function forEach(obj, cb, context) {
+  for (var key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      cb.call(context || {}, key, obj[key]);
+    }
+  }
 }
 
 /**
@@ -118,24 +120,24 @@ function forEach(obj, cb) {
  * @return {Object} The completed, merged object.
  */
 function merge() {
-	var obj = {};
-	var args = Array.prototype.slice.call(arguments);
-	args.forEach(function(elem) {
-		if (typeof elem == 'object') {
-			for (var i in elem) {
-				if (elem.hasOwnProperty(i))
-					obj[i] = elem[i];
-			}
-		}
-	});
-	return obj;
+  var obj = {};
+  var args = Array.prototype.slice.call(arguments);
+  args.forEach(function(elem) {
+    if (typeof elem == 'object') {
+      for (var i in elem) {
+        if (elem.hasOwnProperty(i))
+          obj[i] = elem[i];
+      }
+    }
+  });
+  return obj;
 }
 
 // Public API Mapping
 module.exports = {
-	clone: clone,
-	deepMerge: deepMerge,
-	findFreeKey: findFreeKey,
-	forEach: forEach,
-	merge: merge
+  clone: clone,
+  deepMerge: deepMerge,
+  findFreeKey: findFreeKey,
+  forEach: forEach,
+  merge: merge
 };

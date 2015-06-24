@@ -4,118 +4,92 @@
  */
 
 // Dependencies
-var fs = require('fs'),
-	path = require('path'),
-	objUtil = require('../util/Object'),
-	Ribbit = require('../ribbit/Ribbit'),
-	Seq = require('seq');
+var fs = require('fs');
+var objUtil = require('../util/Object');
+var path = require('path');
+var Ribbit = require('../ribbit/Ribbit');
 
-const CORE_MOD_DIR = __dirname + '/../coremods';
-const USER_MOD_DIR = __dirname + '/../../mods';
+const CORE_MOD_DIR = path.join(__dirname, '../coremods');
+const USER_MOD_DIR = path.join(__dirname, '../../mods');
 
-var coreModIds,
-	coreModIdMap;
+var coreModIds;
+var coreModIdMap;
 
 /**
  * Converts an array to an object map, using the array values as keys and
  * setting the values to boolean true.  This is useful for speeding up
  * repeated checks for existing values in an array.
- *
- * @param {Array} ary The array to be converted
+ * @param {Array<string>} ary The array to be converted
  * @returns {Object} The hash map
  */
 function arrayToMap(ary) {
-	var map = {};
-	ary.forEach(function(elem) {
-		map[elem] = true;
-	});
-	return map;
+  var map = {};
+  ary.forEach(function(elem) {
+    map[elem] = true;
+  });
+  return map;
 }
 
 /**
  * Retrieves an object map, with the keys being all available mod IDs in the
  * 'coremods' folder, and each value being boolean true.
- *
- * @param {Function} cb A callback function to be executed on completion.
- *      Arguments provided are:
- *          - {Error} An error object, if an error occurred
- *          - {Object} The hash map
+ * @returns {Promise<Object>} Resolves with the hash map
  */
-function getCoreModIdMap(cb) {
-	if (coreModIds) {
-		if (!coreModIdMap)
-			coreModIdMap = arrayToMap(coreModIds);
-		cb(null, coreModIdMap);
-	}
-	else {
-		getCoreModIds(function(err, ids) {
-			if (err)
-				cb(err);
-			else {
-				coreModIdMap = arrayToMap(ids);
-				cb(null, coreModIdMap);
-			}
-		});
-	}
+function getCoreModIdMap() {
+  if (coreModIds) {
+    if (!coreModIdMap) {
+      coreModIdMap = arrayToMap(coreModIds);
+    }
+    return Promise.resolve(coreModIdMap);
+  }
+  return getCoreModIds().then(function(ids) {
+    coreModIdMap = arrayToMap(ids);
+    return coreModIdMap;
+  });
 }
 
 /**
  * Gets an array of all available mod IDs in the 'coremods' folder.
- *
- * @param {Function} cb A callback function to be executed on completion.
- *      Arguments provided are:
- *          - {Error} An error object, if an error occurred
- *          - {Array} The array of mod IDs
+ * @returns {Promise<Array<string>>} Resolves with the array of mod IDs.
  */
-function getCoreModIds(cb) {
-	if (coreModIds)
-		cb(null, coreModIds);
-	else {
-		getModIdsInDir(CORE_MOD_DIR, function(err, ids) {
-			if (err)
-				cb(err);
-			else {
-				coreModIds = ids;
-				cb(null, ids);
-			}
-		});
-	}
-}
-
-/**
- * Gets an array of all available mod IDs in the 'mods' folder.
- *
- * @param {Function} cb A callback function to be executed on completion.
- *      Arguments provided are:
- *          - {Error} An error object, if an error occurred
- *          - {Array} The array of mod IDs
- */
-function getUserModIds(cb) {
-	getModIdsInDir(USER_MOD_DIR, cb);
+function getCoreModIds() {
+  if (coreModIds) {
+    return Promise.resolve(coreModIds);
+  }
+  return getModIdsInDir(CORE_MOD_DIR).then(function(ids) {
+    coreModIds = ids;
+    return ids;
+  });
 }
 
 /**
  * Gets an array of all available mod IDs in a given directory.
- *
- * @param {String} dir The path to the folder to be checked
- * @param {Function} cb A callback function to be executed on completion.
- *      Arguments provided are:
- *          - {Error} An error object, if an error occurred
- *          - {Array} The array of mod IDs
+ * @param {string} dir The path to the folder to be checked
+ * @returns {Promise<Array<string>>} the array of mod IDs.
  */
-function getModIdsInDir(dir, cb) {
-	fs.readdir(dir, function(err, list) {
-		if (err)
-			cb(err);
-		else {
-			var modIds = list.filter(function(file) {
-				return file[0] != '.';
-			}).map(function(file) {
-				return file.replace(/\.js$/, '');
-			});
-			cb(null, modIds);
-		}
-	});
+function getModIdsInDir(dir) {
+  return new Promise(function(resolve, reject) {
+    fs.readdir(dir, function(err, list) {
+      if (err) {
+        reject(err);
+      } else {
+        var modIds = list.filter(function(file) {
+          return file[0] !== '.';
+        }).map(function(file) {
+          return file.replace(/\.js$/, '');
+        });
+        resolve(modIds);
+      }
+    });
+  });
+}
+
+/**
+ * Gets an array of all available mod IDs in the 'mods' folder.
+ * @returns {Promise<Array<string>>} the array of mod IDs.
+ */
+function getUserModIds() {
+  return getModIdsInDir(USER_MOD_DIR);
 }
 
 /**
@@ -127,52 +101,30 @@ function getModIdsInDir(dir, cb) {
  * Note that loading modules into the Toady framework is significantly more
  * complex than calling this function; this should only be called from
  * {@link ModManager#loadMod}.
- *
- * @param {String} modId The ID of the mod to be loaded
- * @param {Function} cb A callback function to be executed on completion.
- *      Arguments provided are:
- *          - {Error} An error object, if an error occurred
- *          - {*} The result of requiring the mod file.  If the mod is
- *            properly formatted, this should be an executable function.
- *          - {Object|null} If found, the parsed package.json file associated
- *            with the mod.
+ * @param {string} modId The ID of the mod to be loaded
+ * @returns {Promise<{func: function, [json]: Object}>} Resolves with an object
+ *    containing the loaded module (func) as well as the parsed package.json
+ *    file (json) if found.
+ * @throws {Error} If the module does not exist
  */
-function loadMod(modId, cb) {
-	Seq()
-		.seq(function getMap() {
-			getCoreModIdMap(this);
-		})
-		.seq(function getMod(coreModMap) {
-			var mod,
-				loadErr;
-			this.vars.dir = coreModMap[modId] ? CORE_MOD_DIR : USER_MOD_DIR;
-			try {
-				mod = require(path.join(this.vars.dir, modId));
-			}
-			catch (e) {
-				loadErr = new Error("Could not load mod '" + modId +
-					"': Module does not exist");
-				if (e.stack)
-					console.log(e.stack);
-				else
-					console.log(e);
-			}
-			this(loadErr, mod);
-		})
-		.seq(function getPackageJson(mod) {
-			var pkgJson = null;
-			try {
-				pkgJson = require(path.join(this.vars.dir, modId,
-					'package.json'));
-			}
-			catch (e) {
-				pkgJson = null;
-			}
-			cb(null, mod, pkgJson);
-		})
-		.catch(function(err) {
-			cb(err);
-		});
+function loadMod(modId) {
+  var dir;
+  getCoreModIdMap().then(function(coreModMap) {
+    dir = coreModMap[modId] ? CORE_MOD_DIR : USER_MOD_DIR;
+    try {
+      return {func: require(path.join(dir, modId))};
+    } catch (e) {
+      throw new Error("Could not load mod '" + modId +
+        "': Module does not exist");
+    }
+  }).then(function(pkg) {
+    try {
+      pkg.json = require(path.join(dir, modId, 'package.json'));
+    } catch (e) {
+      pkg.json = null;
+    }
+    return pkg;
+  });
 }
 
 /**
@@ -184,41 +136,27 @@ function loadMod(modId, cb) {
  * Note that unloading modules from the Toady framework is significantly more
  * complex than calling this function; this should only be called from
  * {@link ModManager#unloadMod}.
- *
  * @param {String} modId The ID of the mod to be unloaded.
- * @param {Function} [cb] A callback function to be executed on completion.
- *      Arguments provided are:
- *          - {Error} An error object, if an error occurred
+ * @returns {Promise} Resolves on complete
  */
-function unloadMod(modId, cb) {
-	getCoreModIdMap(function(err, coreModMap) {
-		if (err)
-			cb(err);
-		else {
-			var dir = coreModMap[modId] ? CORE_MOD_DIR : USER_MOD_DIR,
-				modKey = require.resolve(dir + '/' + modId),
-				modObj = require.cache[modKey];
-			if (modObj) {
-				var regex = new RegExp('\/(?:' + Ribbit.MOD_PREFIX +
-					')?' + modId);
-				objUtil.forEach(require.cache, function(key) {
-					if (key.match(regex))
-						delete require.cache[key];
-				});
-				if (cb)
-					cb(null);
-			}
-			else if (cb) {
-				cb(new Error("No loaded modules belonging to '" + modId +
-					"' were found."));
-			}
-		}
-	});
+function unloadMod(modId) {
+  return getCoreModIdMap().then(function(coreModMap) {
+    var dir = coreModMap[modId] ? CORE_MOD_DIR : USER_MOD_DIR;
+    var modKey = require.resolve(dir + '/' + modId);
+    if (require.cache[modKey]) {
+      var regex = new RegExp('\/(?:' + Ribbit.MOD_PREFIX + ')?' + modId);
+      objUtil.forEach(require.cache, function(key) {
+        if (key.match(regex)) {
+          delete require.cache[key];
+        }
+      });
+    }
+  });
 }
 
 module.exports = {
-	getCoreModIds: getCoreModIds,
-	getUserModIds: getUserModIds,
-	loadMod: loadMod,
-	unloadMod: unloadMod
+  getCoreModIds: getCoreModIds,
+  getUserModIds: getUserModIds,
+  loadMod: loadMod,
+  unloadMod: unloadMod
 };

@@ -22,6 +22,10 @@ mod_commandrunner:
   # in order to be recognized as commands.
   fantasyChar: "!"
 
+log:
+  - target: console
+    formatter: human
+
 ## !!IMPORTANT!! ##
 ## Currently, the only defaultAuthMethod is 'NickServ', requiring the
 ## bot owner to be registered and identified with NickServ in order to be

@@ -4,31 +4,25 @@
  */
 
 // Dependencies
-var client = require('./irc/Client'),
-	ModManager = require('./modmanager/ModManager'),
-	Seq = require('seq');
+var irc = require('../lib/irc');
+var log = require('../lib/log');
+var ModManager = require('./modmanager/ModManager');
 
-client.setMaxListeners(0);
-client.addListener('error', function(message) {
-	console.log('[ERROR] ', message);
+irc.setMaxListeners(0);
+irc.addListener('error', function(err) {
+  log.error(err);
 });
 
-Seq()
-	.seq(function() {
-		console.log('Loading Core modules...');
-		ModManager.loadCoreMods(this);
-	})
-	.seq(function() {
-		console.log('Loading User modules...');
-		ModManager.loadUserMods(this);
-	})
-	.seq(function() {
-		console.log('Connecting to IRC...');
-		client.connect(3, function() {
-			console.log('Connected.');
-		});
-	})
-	.catch(function(err) {
-		console.log(err);
-		process.exit(1);
-	});
+log.info('Loading Core modules...');
+ModManager.loadCoreMods().then(function() {
+  log.info('Loading User modules...');
+  return ModManager.loadUserMods();
+}).then(function() {
+  log.info('Connecting to IRC...');
+  return irc.connect(3);
+}).then(function() {
+  log.info('Connected.');
+}).catch(function(err) {
+  log.error(err);
+  throw err;
+});
