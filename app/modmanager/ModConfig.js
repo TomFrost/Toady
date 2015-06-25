@@ -4,10 +4,10 @@
  */
 
 // Dependencies
+var _ = require('lodash');
 var config = require('config');
 var env = process.env.NODE_ENV || 'default';
 var fs = require('fs');
-var objUtil = require('../util/Object');
 var path = require('path');
 
 const CONFIG_PATH = path.join(__dirname, '../../config/',
@@ -110,10 +110,10 @@ var getSaveFunc = function(modId) {
  *    non-enumerable save function.
  */
 function getConfig(modId, defaults) {
-  var conf = objUtil.deepMerge(defaults || {},
+  var conf = _.merge({}, defaults || {},
     config[CONFIG_PREFIX + modId] || {});
   return getModConfigFile(modId).then(function(modFile) {
-    conf = objUtil.deepMerge(conf, modFile);
+    conf = _.merge({}, conf, modFile);
     Object.defineProperty(conf, 'save', {
       value: getSaveFunc(modId).bind(conf)
     });

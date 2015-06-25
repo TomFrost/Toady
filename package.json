@@ -14,9 +14,11 @@
   "author": "Tom Shawver <tom@frosteddesign.com>",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^2.9.30",
     "bristol": "^0.3.2",
     "config": "^0.4.37",
     "irc": "^0.3.12",
+    "lodash": "^3.9.3",
     "npm": "^1.2.8000",
     "rimraf": "^2.1.4",
     "semver": "^2.0.11",

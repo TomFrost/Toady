@@ -4,12 +4,12 @@
  */
 
 // Dependencies
+var _ = require('lodash');
 var events = require('events');
 var irc = require('../../lib/irc');
 var log = require('../../lib/log');
 var ModConfig = require('./ModConfig');
 var ModLoader = require('./ModLoader');
-var objUtil = require('../util/Object');
 var ribbit = require('../ribbit/Ribbit');
 var semver = require('semver');
 var util = require('util');
@@ -142,7 +142,7 @@ ModManager.prototype.getMod = function(modId) {
  */
 ModManager.prototype.getMods = function() {
   var modArray = [];
-  objUtil.forEach(this._mods, function(key, val) {
+  _.forOwn(this._mods, function(val) {
     modArray.push(val);
   });
   return modArray;
@@ -240,15 +240,16 @@ ModManager.prototype.loadMod = function(modId) {
         }
       }
     }
-    return objUtil.merge(MOD_DEFAULTS, modPkg, rawMod, {
+    return _.assign(MOD_DEFAULTS, modPkg, rawMod, {
       id: modId,
       config: modConf
     });
   }.bind(this)).then(function(mod) {
     var collisions = [];
-    objUtil.forEach(mod.commands || {}, function(key) {
-      if (this._commands[key]) {
-        collisions.push(key);
+    var commandNames = Object.keys(mod.commands);
+    commandNames.forEach(function(name) {
+      if (this._commands[name]) {
+        collisions.push(name);
       }
     }, this);
     if (collisions.length) {
@@ -256,7 +257,7 @@ ModManager.prototype.loadMod = function(modId) {
         'following commands are already registered: ' +
         collisions.join(', '));
     }
-    objUtil.forEach(mod.commands || {}, function(key, val) {
+    _.forOwn(mod.commands || {}, function(val, key) {
       var cmd = key.toLowerCase();
       val.mod = mod;
       val.id = cmd;
@@ -368,9 +369,10 @@ ModManager.prototype.unloadMod = function(modId, force) {
     throw new Error("Module '" + modId + "' can not be unloaded");
   }
   if (mod.commands) {
-    objUtil.forEach(mod.commands, function(key) {
-      if (this._commands[key]) {
-        delete this._commands[key];
+    var commandNames = Object.keys(mod.commands);
+    commandNames.forEach(function(name) {
+      if (this._commands[name]) {
+        delete this._commands[name];
       }
     }, this);
   }

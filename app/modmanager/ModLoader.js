@@ -5,7 +5,6 @@
 
 // Dependencies
 var fs = require('fs');
-var objUtil = require('../util/Object');
 var path = require('path');
 var Ribbit = require('../ribbit/Ribbit');
 
@@ -145,7 +144,8 @@ function unloadMod(modId) {
     var modKey = require.resolve(dir + '/' + modId);
     if (require.cache[modKey]) {
       var regex = new RegExp('\/(?:' + Ribbit.MOD_PREFIX + ')?' + modId);
-      objUtil.forEach(require.cache, function(key) {
+      var cacheKeys = Object.keys(require.cache);
+      cacheKeys.forEach(function(key) {
         if (key.match(regex)) {
           delete require.cache[key];
         }

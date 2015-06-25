@@ -4,167 +4,125 @@
  */
 
 // Dependencies
-var fs = require('fs'),
-	path = require('path'),
-	npm = require('npm'),
-	rimraf = require('rimraf'),
-	Seq = require('seq');
+var Bluebird = require('bluebird');
+var fs = require('fs');
+var npm = require('npm');
+var path = require('path');
+var rimraf = Bluebird.promisify(require('rimraf'));
 
 const MOD_DIR = path.normalize(path.join(__dirname, '../../mods'));
 const MOD_PREFIX = 'toady-';
+
+Bluebird.promisifyAll(fs);
+Bluebird.promisifyAll(npm);
 
 /**
  * Installs a given Toady mod by having NPM install it into node_modules
  * (complete with the 'toady-' prefix) and symlinking it to the mods folder
  * without the prefix.
- *
- * @param {String} modId The ID of the mod to be installed, without the
- *      Toady package prefix
- * @param {Function} cb A callback function to be executed on completion.
- *      Arguments provided are:
- *          - {Error} An error object, if an error occurred
+ * @param {string} modId The ID of the mod to be installed, without the
+ *    Toady package prefix
+ * @returns {Promise} Resolves on complete.
  */
-function install(modId, cb) {
-	var modPkg = MOD_PREFIX + modId;
-	Seq()
-		.seq(function checkArgs() {
-			if (modId.indexOf(' ') != -1)
-				this(new Error('Mod names cannot contain spaces'));
-			else
-				this();
-		})
-		.seq(function getNpm() {
-			npm.load(this);
-		})
-		.seq(function runInstall(npm) {
-			npm.install(modPkg, this);
-		})
-		.seq(function makeSymlink() {
-			fs.symlink(path.join(npm.dir, modPkg), path.join(MOD_DIR, modId),
-				'dir', this);
-		})
-		.seq(function complete() {
-			cb();
-		})
-		.catch(function(err) {
-			cb(err);
-		});
+function install(modId) {
+  var modPkg = MOD_PREFIX + modId;
+  return Promise.resolve().then(function() {
+    if (modId.indexOf(' ') !== -1) {
+      throw new Error('Mod names cannot contain spaces');
+    }
+    return npm.loadAsync();
+  }).then(function(npmInst) {
+    return npmInst.installAsync(modPkg);
+  }).then(function() {
+    return fs.symlinkAsync(path.join(npm.dir, modPkg),
+      path.join(MOD_DIR, modId), 'dir');
+  });
 }
 
 /**
  * Executes an NPM search for mods matching the toady mod prefix and an
  * optional additional search query.
- *
- * @param {String|null} [query] A search query to limit the result.  Omit to
- *      return all Toady mods.
- * @param {Function} cb A callback function to be executed on completion.
- *      Arguments provided are:
- *          - {Error} An error object, if an error occurred
- *          - {Array} The modIds (Strings) that were found in the search.  Each
- *            element of the array will have a corresponding key in the NPM
- *            result set, where the key is prefixed with {@link #MOD_PREFIX}.
- *          - {Object} The raw NPM result set from the search, mapping package
- *            names to package metadata.  Note that not all results in this
- *            set may be Toady mods.  It's best to iterate through the array
- *            of modIds, prepending {@link #MOD_PREFIX} to each one, and
- *            pulling that key from this object.
+ * @param {string|null} [query] A search query to limit the result.  Omit to
+ *    return all Toady mods.
+ * @returns {Promise<{modIds: Array<string>, res: Object}>} Resolves with an
+ *    object containing two properties: an array of modIds found (modIds), and
+ *    the raw NPM response object (res). Note that not all results in this set
+ *    may be Toady mods. It's best to iterate through the array of modIds,
+ *    prepending {@link #MOD_PREFIX} to each one, and pulling that key from
+ *    this object.
  */
-function search(query, cb) {
-	Seq()
-		.seq(function getNpm() {
-			npm.load(this);
-		})
-		.seq(function runSearch(npm) {
-			var args = query.split(' ');
-			args.push(MOD_PREFIX, this);
-			npm.search.apply(npm, args);
-		})
-		.seq(function getKeys(res) {
-			var pregex = new RegExp('^' + MOD_PREFIX);
-			var modIds = Object.keys(res).filter(function(key) {
-				return key.match(pregex);
-			}).map(function(key) {
-				return key.substr(MOD_PREFIX.length);
-			});
-			if (!modIds || !modIds.length)
-				this(new Error("No results for \"" + query + "\"."));
-			else
-				cb(null, modIds, res);
-		})
-		.catch(function(err) {
-			cb(err);
-		});
+function search(query) {
+  return npm.loadAsync().then(function(npmInst) {
+    var args = query.split(' ');
+    args.push(MOD_PREFIX);
+    return npmInst.searchAsync.apply(npmInst, args);
+  }).then(function(res) {
+    var pregex = new RegExp('^' + MOD_PREFIX);
+    var modIds = Object.keys(res).filter(function(key) {
+      return key.match(pregex);
+    }).map(function(key) {
+      return key.substr(MOD_PREFIX.length);
+    });
+    if (!modIds || !modIds.length) {
+      throw new Error('No results for "' + query + '".');
+    }
+    return {
+      modIds: modIds,
+      res: res
+    };
+  });
 }
 
 /**
  * Uninstalls a mod by removing the symlink in the mods folder, as well as
  * deleting the mod from node_modules.  If a mod was not installed through
  * this means, an error will be returned.
- *
- * @param {String} modId An installed mod ID to be deleted
- * @param {Function} cb A callback function to be executed on completion.
- *      Arguments provided are:
- *          - {Error} An error object, if an error occurred
+ * @param {string} modId An installed mod ID to be deleted
+ * @returns {Promise} Resolves on complete.
  */
-function uninstall(modId, cb) {
-	var modPath = path.join(MOD_DIR, modId),
-		nonRibbitErr = new Error("Only mods installed with this utility \
-can be uninstalled with this utility.");
-	Seq()
-		.seq(function sanitize() {
-			if (modId.indexOf(' ') != -1 || modId.indexOf('/') != -1)
-				this(new Error("The uninstall command takes a single mod ID."));
-			else
-				this();
-		})
-		.seq(function getStat() {
-			var next = this;
-			fs.lstat(modPath, function(err, stat) {
-				if ((err && err.code == 'ENOENT') || !err)
-					next(null, stat);
-				else
-					next(err);
-			});
-		})
-		.seq(function assertSymLink(stat) {
-			if (!stat)
-				this(new Error("Mod '" + modId + "' not found."));
-			else if (!stat.isSymbolicLink())
-				this(nonRibbitErr);
-			else
-				this();
-		})
-		.seq(function getLinkedPath() {
-			fs.readlink(modPath, this);
-		})
-		.seq(function assertNodeModules(linkPath) {
-			var existsRegex = new RegExp(path.join('node_modules',
-				MOD_PREFIX + modId) + '$');
-			if (!linkPath.match(existsRegex))
-				this(nonRibbitErr);
-			else {
-				this.vars.linkPath = linkPath;
-				this(null, linkPath);
-			}
-		})
-		.seq(function deleteSymLink() {
-			fs.unlink(modPath, this);
-		})
-		.seq(function deleteLinkPath() {
-			rimraf(this.vars.linkPath, this);
-		})
-		.seq(function success() {
-			cb();
-		})
-		.catch(function(err) {
-			cb(err);
-		});
+function uninstall(modId) {
+  var modPath = path.join(MOD_DIR, modId);
+  var nonRibbitErr = new Error('Only mods installed with this utility ' +
+    'can be uninstalled with this utility.');
+  return Promise.resolve().then(function() {
+    if (modId.indexOf(' ') !== -1 || modId.indexOf('/') !== -1) {
+      throw new Error('The uninstall command takes a single mod ID.');
+    }
+    return new Promise(function(resolve, reject) {
+      fs.lstat(modPath, function(err, stat) {
+        if (err) {
+          if (err.code === 'ENOENT') {
+            reject(new Error("Mod '" + modId + "' not found."));
+          } else {
+            reject(err);
+          }
+        } else {
+          resolve(stat);
+        }
+      });
+    });
+  }).then(function(stat) {
+    if (!stat.isSymbolicLink()) {
+      throw nonRibbitErr;
+    }
+    return fs.readlinkAsync(modPath);
+  }).then(function(linkPath) {
+    var existsRegex = new RegExp(path.join('node_modules',
+        MOD_PREFIX + modId) + '$');
+    if (!linkPath.match(existsRegex)) {
+      throw nonRibbitErr;
+    }
+    return Promise.all([
+      fs.unlinkAsync(modPath),
+      rimraf(linkPath)
+    ]);
+  });
 }
 
 module.exports = {
-	MOD_DIR: MOD_DIR,
-	MOD_PREFIX: MOD_PREFIX,
-	install: install,
-	search: search,
-	uninstall: uninstall
+  MOD_DIR: MOD_DIR,
+  MOD_PREFIX: MOD_PREFIX,
+  install: install,
+  search: search,
+  uninstall: uninstall
 };
