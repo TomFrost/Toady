@@ -89,7 +89,7 @@
     "no-floating-decimal": 2,        // http://eslint.org/docs/rules/no-floating-decimal
     "no-implied-eval": 2,            // http://eslint.org/docs/rules/no-implied-eval
     "no-lone-blocks": 2,             // http://eslint.org/docs/rules/no-lone-blocks
-    "no-loop-func": 2,               // http://eslint.org/docs/rules/no-loop-func
+    "no-loop-func": 0,               // http://eslint.org/docs/rules/no-loop-func
     "no-multi-str": 2,               // http://eslint.org/docs/rules/no-multi-str
     "no-native-reassign": 2,         // http://eslint.org/docs/rules/no-native-reassign
     "no-new": 2,                     // http://eslint.org/docs/rules/no-new
@@ -97,7 +97,7 @@
     "no-new-wrappers": 2,            // http://eslint.org/docs/rules/no-new-wrappers
     "no-octal": 2,                   // http://eslint.org/docs/rules/no-octal
     "no-octal-escape": 2,            // http://eslint.org/docs/rules/no-octal-escape
-    "no-param-reassign": 2,          // http://eslint.org/docs/rules/no-param-reassign
+    "no-param-reassign": 0,          // http://eslint.org/docs/rules/no-param-reassign
     "no-proto": 2,                   // http://eslint.org/docs/rules/no-proto
     "no-redeclare": 2,               // http://eslint.org/docs/rules/no-redeclare
     "no-return-assign": 2,           // http://eslint.org/docs/rules/no-return-assign
