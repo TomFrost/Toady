@@ -52,6 +52,7 @@ module.exports = function(config, client) {
       pendingNicks[nick] = {
         resolve: resolve,
         timeout: setTimeout(function() {
+          delete pendingNicks[nick];
           reject(new Error('NickServ authentication timed out'));
         }, REQ_TIMEOUT)
       };
