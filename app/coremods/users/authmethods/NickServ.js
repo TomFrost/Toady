@@ -3,8 +3,6 @@
  * Copyright 2015 Tom Shawver
  */
 
-var _ = require('lodash');
-
 const NICKSERV = 'NickServ';
 const REQ_TIMEOUT = 10000;
 const SWITCH_REGEX = /^Unknown command/;

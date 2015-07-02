@@ -12,7 +12,6 @@
  * @returns {Object} A Toady mod
  */
 module.exports = function(config, client, modMan) {
-
   /**
    * Returns a closure that executes the given function name on the
    * ModManager object.
