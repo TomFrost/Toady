@@ -3,10 +3,6 @@
  * Copyright 2015 Tom Shawver
  */
 
-// NPM, why do you use stderr for non-error output? Uncool.
-process.stderr._write = process.stderr.write;
-process.stderr.write = function() {};
-
 // Dependencies
 var _ = require('lodash');
 var ribbit = require('../app/ribbit/Ribbit');
@@ -40,7 +36,7 @@ function exitFatal(err, code) {
   if (code === undefined || code === null) {
     code = 1;
   }
-  console.log(err.message);
+  console.log(err.stack);
   process.exit(code);
 }
 
@@ -86,14 +82,12 @@ function printUsage() {
  * @param {string} query A search query to limit the results
  */
 function search(query) {
-  var stdOn = stdOff();
   ribbit.search(query).then(function(resObj) {
-    stdOn();
     if (!resObj.modIds || !resObj.modIds.length) {
       throw new Error('No results for "' + query + '.');
     }
     var maxId = resObj.modIds.reduce(function(a, b) {
-      return Math.max(a.length, b.length);
+      return Math.max(a.length || 0, b.length || 0);
     }, 0);
     var maxDesc = process.stdout.columns - maxId - 4;
     console.log('');
@@ -120,20 +114,6 @@ function startToady(configName) {
     process.env.NODE_ENV = args;
   }
   require('../app/Toady');
-}
-
-/**
- * Overrides stdout so that any form of console logging is null-routed.  This
- * is useful to silence NPM output.
- * @returns {Function} A function that, when called, will restore stdout to
- *      its original setting.
- */
-function stdOff() {
-  var oldStdout = process.stdout.write;
-  process.stdout.write = function() {};
-  return function() {
-    process.stdout.write = oldStdout;
-  };
 }
 
 /**

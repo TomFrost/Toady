@@ -31,8 +31,8 @@ function install(modId) {
       throw new Error('Mod names cannot contain spaces');
     }
     return npm.loadAsync();
-  }).then(function(npmInst) {
-    return npmInst.installAsync(modPkg);
+  }).then(function() {
+    return Bluebird.promisify(npm.install, npm)(modPkg);
   }).then(function() {
     return fs.symlinkAsync(path.join(npm.dir, modPkg),
       path.join(MOD_DIR, modId), 'dir');
@@ -52,10 +52,10 @@ function install(modId) {
  *    this object.
  */
 function search(query) {
-  return npm.loadAsync().then(function(npmInst) {
+  return npm.loadAsync().then(function() {
     var args = query.split(' ');
     args.push(MOD_PREFIX);
-    return npmInst.searchAsync.apply(npmInst, args);
+    return Bluebird.promisify(npm.commands.search)(args, true, 0);
   }).then(function(res) {
     var pregex = new RegExp('^' + MOD_PREFIX);
     var modIds = Object.keys(res).filter(function(key) {
